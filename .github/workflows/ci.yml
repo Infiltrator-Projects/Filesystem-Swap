@@ -1,0 +1,25 @@
+name: Swap independent SO build and media tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  swap-so:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SWAP.so using pinned Libraries Common
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel 2
+      - name: Prove native analysis and module formatting
+        run: ctest --test-dir build --output-on-failure
+      - name: Prove ELF symbols
+        run: |
+          test -f build/SWAP.so
+          nm -D build/SWAP.so | grep 'infiltrator_filesystem_swap_v1'
+          nm -D build/SWAP.so | grep 'infiltrator_filesystem_api_v1'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SWAP-so
+          path: build/SWAP.so
