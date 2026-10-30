@@ -9,7 +9,7 @@ set(INFILTRATR_COMMON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(INFILTRATR_COMMON_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(infiltratr_common
     GIT_REPOSITORY https://github.com/Infiltrator-Projects/Libraries.git
-    GIT_TAG dc4aac326964ca4400b6e21851d16eea674040c8)
+    GIT_TAG c76ec95ef66fc728df6a906ad75a6a4dd63b419b)
 FetchContent_MakeAvailable(infiltratr_common)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
 add_library(swap-driver SHARED
