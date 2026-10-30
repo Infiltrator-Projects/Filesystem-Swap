@@ -1,6 +1,6 @@
 # Swap module migration (2026-10-30)
 Defragmenter's original native swap analyser, native data mapper and worker
-are now source-owned by this repository under migration/defragmenter/native,
+are now source-owned by this repository under native/,
 and built into SWAP.so. The original source files are deliberately unchanged;
 a minimal compatibility adapter delegates exact I/O to the pinned, authoritative
 Libraries Common implementation rather than copying Defragmenter's I/O engine.
