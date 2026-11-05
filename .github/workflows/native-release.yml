@@ -20,6 +20,7 @@ jobs:
           set -euo pipefail
           python3 -m py_compile standalone/build.py standalone/release.py
           python3 standalone/release.py release
+          python3 standalone/check-package.py dist/*.deb --profile portable
           test "$(find dist -name '*.deb' | wc -l)" = 1
           test "$(find dist -name '*.run' | wc -l)" = 1
       - name: Prove source-embedded RUN creates CPU-native Debian with one SO and PDF
@@ -30,7 +31,7 @@ jobs:
           FS_ABI="$(python3 -c 'import json; print(json.load(open("standalone/config.json"))["abi"])')"
           FS_PDF="$(python3 -c 'import json; print(json.load(open("standalone/config.json"))["pdf"])')"
           run_file="$(find dist -maxdepth 1 -type f -name '*.run' -print -quit)"
-          bash "$run_file" --profile aggressive --build-only --output "$RUNNER_TEMP/native"
+          bash "$run_file" --profile aggressive --system-package-mode --build-only --output "$RUNNER_TEMP/native"
           deb_file="$(find "$RUNNER_TEMP/native" -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -s "$deb_file"
           test "$(dpkg-deb -f "$deb_file" X-Infiltrator-Native-Profile)" = aggressive
