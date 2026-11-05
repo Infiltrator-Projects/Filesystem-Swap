@@ -4,7 +4,7 @@ Independent filesystem implementation for InfiltratorOS, using the shared Common
 ## Installer files
 
 - `/System/Filesystems/SWAP.so`
-- `/System/Resources/Documentation/Filesystem-Swap/Swap.pdf`
+- `/System/Resources/Documentation/Filesystem-Swap.pdf`
 
 The current package builds the shared object and generates the PDF. A standalone kernel module is pending.
 
