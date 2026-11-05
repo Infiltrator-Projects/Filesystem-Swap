@@ -222,6 +222,8 @@ def install(rest):
     opt = parser.parse_args(rest)
     if opt.build_only and not opt.output:
         parser.error("--build-only requires --output DIRECTORY")
+    if opt.kernel_build and kernel.SPEC is None:
+        parser.error("This provider has no standalone Linux kernel adapter")
     if opt.system_package_mode and opt.kernel_build:
         parser.error("--kernel-build applies to the manual installer")
     kernel_target = None if opt.system_package_mode or kernel.SPEC is None else kernel.target(opt.kernel_build)
@@ -276,6 +278,8 @@ def main():
     elif args.command == "install":
         install(rest)
     else:
+        if kernel.SPEC is None:
+            p.error("This provider has no standalone Linux kernel adapter")
         bundle = argparse.ArgumentParser()
         bundle.add_argument("package", type=Path)
         bundle.add_argument("kernel", type=Path)
