@@ -5,12 +5,15 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(FetchContent)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(INFILTRATR_COMMON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(INFILTRATR_COMMON_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(infiltratr_common
     GIT_REPOSITORY https://github.com/Infiltrator-Projects/Libraries.git
     GIT_TAG c76ec95ef66fc728df6a906ad75a6a4dd63b419b)
 FetchContent_MakeAvailable(infiltratr_common)
+# SWAP.so links Common; Common's development files must not be installed.
+set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
 add_library(swap-driver SHARED
     native/swap_native.c
@@ -39,4 +42,20 @@ if(BUILD_TESTING)
     target_link_libraries(swap-module-test PRIVATE swap-driver)
     add_test(NAME swap-so-interface-and-format COMMAND swap-module-test)
 endif()
+# Generate the same versioned PDF as the standalone native source installer.
+set(SWAP_GENERATED_PDF "${CMAKE_CURRENT_BINARY_DIR}/Filesystem-Swap.pdf")
+add_custom_command(
+ OUTPUT "${SWAP_GENERATED_PDF}"
+ COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/standalone/generate_manual.py"
+         "${CMAKE_CURRENT_SOURCE_DIR}/VERSION"
+         "${CMAKE_CURRENT_SOURCE_DIR}/docs/Swap.pages"
+         "${SWAP_GENERATED_PDF}"
+ DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION"
+         "${CMAKE_CURRENT_SOURCE_DIR}/docs/Swap.pages"
+         "${CMAKE_CURRENT_SOURCE_DIR}/standalone/manual.py"
+         "${CMAKE_CURRENT_SOURCE_DIR}/standalone/generate_manual.py"
+ VERBATIM)
+add_custom_target(swap-manual ALL DEPENDS "${SWAP_GENERATED_PDF}")
 install(TARGETS swap-driver LIBRARY DESTINATION /System/Filesystems)
+install(FILES "${SWAP_GENERATED_PDF}"
+        DESTINATION /System/Resources/Documentation)

@@ -19,6 +19,18 @@ jobs:
           test -f build/SWAP.so
           nm -D build/SWAP.so | grep 'infiltrator_filesystem_swap_v1'
           nm -D build/SWAP.so | grep 'infiltrator_filesystem_api_v1'
+      - name: Direct install has exactly one SWAP.so and its current manual
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          DESTDIR="$stage" cmake --install build
+          test "$(find "$stage" -type f | wc -l)" -eq 2
+          test -s "$stage/System/Filesystems/SWAP.so"
+          test -s "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
+          test "$(head -c 5 "$stage/System/Resources/Documentation/Filesystem-Swap.pdf")" = '%PDF-'
+          cmp build/Filesystem-Swap.pdf "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
       - uses: actions/upload-artifact@v4
         with:
           name: SWAP-so
