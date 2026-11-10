@@ -10,17 +10,14 @@ set(INFILTRATR_COMMON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(INFILTRATR_COMMON_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(infiltratr_common
     GIT_REPOSITORY https://github.com/Infiltrator-Projects/Libraries.git
-    GIT_TAG f002d99f5971e6f55aa91b5a245b8307bba6b0ee)
+    GIT_TAG 38a076fa35f5c212b589575304dac8086c660123)
 FetchContent_MakeAvailable(infiltratr_common)
 # SWAP.so links Common; Common's development files must not be installed.
 set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
 add_library(swap-driver SHARED
     native/swap_native.c
-    native/swap_worker.c
     module/swap_module.c)
-set_source_files_properties(native/swap_worker.c
-    PROPERTIES COMPILE_DEFINITIONS "main=ifs_swap_worker_main")
 set_target_properties(swap-driver PROPERTIES PREFIX "" OUTPUT_NAME "SWAP" SUFFIX ".so")
 target_compile_definitions(swap-driver PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)
 target_include_directories(swap-driver PRIVATE
