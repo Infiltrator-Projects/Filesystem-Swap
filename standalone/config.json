@@ -2,6 +2,6 @@
   "repository": "Filesystem-Swap",
   "module": "SWAP.so",
   "pdf": "docs/Swap.pdf",
-  "abi": "infiltrator_filesystem_swap_v1",
+  "abi": "infiltrator_filesystem_api_v2",
   "build_system": "cmake"
 }
