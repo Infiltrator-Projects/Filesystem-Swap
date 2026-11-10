@@ -98,23 +98,64 @@ const IfsFsModuleApiV1 *infiltrator_filesystem_api_v1(void) {
     return &common_api;
 }
 
-/* Swap has no mountable namespace, file handles or volume defrag. Common
- * V2 advertises its real, explicit partition formatting operation only. */
+/* One Common V2 contract: operate directly on verified V2 hosts.
+ * The legacy Common V1 export above is transitional only; V2 never calls
+ * it and does not contain a base_v1 pointer. The on-media Swap engine
+ * remains unique in swap_format()/swap_verify().
+ */
+static int v2_read(void *ctx, uint64_t offset, void *p, uint32_t n)
+{
+    const IfsFsHostRuntimeV2 *h = ctx;
+    return h->read_at(h->context, offset, p, n);
+}
+static int v2_write(void *ctx, uint64_t offset, const void *p, uint32_t n)
+{
+    const IfsFsHostRuntimeV2 *h = ctx;
+    return h->write_at(h->context, offset, p, n);
+}
+static int v2_flush(void *ctx)
+{
+    const IfsFsHostRuntimeV2 *h = ctx;
+    return h->flush(h->context);
+}
+static IfsSwapIoV1 native_v2_io(const IfsFsHostRuntimeV2 *h)
+{
+    IfsSwapIoV1 result = {0};
+    result.context = (void *)h;
+    result.bytes = h->volume_bytes;
+    result.read_at = v2_read;
+    result.write_at = h->write_at ? v2_write : NULL;
+    result.flush = h->flush ? v2_flush : NULL;
+    return result;
+}
+static int v2_probe(const IfsFsHostRuntimeV2 *h, uint32_t *variant)
+{
+    IfsSwapIoV1 io;
+    if (!variant || !ifs_fs_host_v2_valid(h)) return IFS_FS_INVALID;
+    io = native_v2_io(h);
+    if (swap_verify(&io) != 0) return IFS_FS_CORRUPT;
+    *variant = 1u;
+    return IFS_FS_OK;
+}
 static int v2_format(const IfsFsHostRuntimeV2 *host,
                      uint32_t variant, const char *label, uint32_t flags)
 {
-    IfsFsHostFormatIoV1 io = {0};
-    int rc;
-    if (!host) return IFS_FS_INVALID;
+    IfsSwapIoV1 io;
+    if (!ifs_fs_host_v2_valid(host)) return IFS_FS_INVALID;
     if (flags) return IFS_FS_UNSUPPORTED;
     if (host->capabilities & IFS_FS_HOST_READ_ONLY) return IFS_FS_ACCESS;
+    if (variant != 1u) return IFS_FS_UNSUPPORTED;
     if (host->logical_sector_bytes > SWAP_PAGE ||
         SWAP_PAGE % host->logical_sector_bytes != 0u)
         return IFS_FS_UNSUPPORTED;
-    rc = ifs_fs_host_v2_as_format_v1(host, &io);
-    if (rc != IFS_FS_OK) return rc;
-    return common_format(&io.host, variant, label);
+    io = native_v2_io(host);
+    return swap_format(&io, label) == 0 ? IFS_FS_OK : IFS_FS_IO_ERROR;
 }
+static const IfsFsCoreOpsV1 core_ops = {
+    .header = {IFS_FS_GROUP_ABI_V1, sizeof(IfsFsCoreOpsV1),
+               IFS_FS_GROUP_CORE, 0u, IFS_FS_CORE_PROBE},
+    .probe = v2_probe
+};
 static const IfsFsVolumeOpsV1 volume_ops = {
     .header = {IFS_FS_GROUP_ABI_V1, sizeof(IfsFsVolumeOpsV1),
                IFS_FS_GROUP_VOLUME, 0u, IFS_FS_VOLUME_FORMAT},
@@ -123,14 +164,17 @@ static const IfsFsVolumeOpsV1 volume_ops = {
 static const IfsFsGroupHeaderV2 *query_group(
     uint32_t id, uint32_t minimum, uint32_t maximum)
 {
-    return id == IFS_FS_GROUP_VOLUME &&
-        minimum <= IFS_FS_GROUP_ABI_V1 &&
-        maximum >= IFS_FS_GROUP_ABI_V1 ? &volume_ops.header : NULL;
+    if (minimum > IFS_FS_GROUP_ABI_V1 ||
+        maximum < IFS_FS_GROUP_ABI_V1) return NULL;
+    if (id == IFS_FS_GROUP_CORE) return &core_ops.header;
+    if (id == IFS_FS_GROUP_VOLUME) return &volume_ops.header;
+    return NULL;
 }
 static const IfsFsModuleApiV2 common_api_v2 = {
     IFS_FS_COMMON_ABI_V2, sizeof(IfsFsModuleApiV2), "swap",
     IFS_FS_PROFILE_HOSTED,
-    IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME), &common_api, query_group
+    IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE) |
+    IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME), NULL, query_group
 };
 __attribute__((visibility("default")))
 const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void)
