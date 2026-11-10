@@ -5,6 +5,7 @@
 #include <infiltratr/filesystem_module_v2.h>
 #include <infiltratr/endian.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 enum { SWAP_PAGE = 4096, SWAP_MAX_PAGE = 65536, SWAP_SIGNATURE = 10,
@@ -12,6 +13,15 @@ enum { SWAP_PAGE = 4096, SWAP_MAX_PAGE = 65536, SWAP_SIGNATURE = 10,
 static const uint32_t pages[] = {4096u,8192u,16384u,32768u,65536u};
 static const uint8_t hibernate_magic[8] =
     {0xedu,0xc3u,0x02u,0xe9u,0x98u,0x56u,0xe5u,0x0cu};
+
+/* The on-disk bad-page table must not count a page twice. Sorting a
+ * bounded scratch table avoids quadratic checks on 64 KiB swap headers. */
+static int compare_page(const void *left, const void *right)
+{
+    const uint32_t a = *(const uint32_t *)left;
+    const uint32_t b = *(const uint32_t *)right;
+    return a < b ? -1 : a > b ? 1 : 0;
+}
 
 static int transfer(const IfsFsHostRuntimeV2 *host, uint64_t at,
                     uint8_t *buffer, uint32_t bytes, int write)
@@ -76,16 +86,35 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
             result = IFS_FS_CORRUPT;
             break;
         }
-        for (j = 0; j < bad_count; ++j) {
-            uint32_t bad = little ?
-                infiltratr_load_le32(buffer + SWAP_HEADER_BYTES + 4u*j) :
-                infiltratr_load_be32(buffer + SWAP_HEADER_BYTES + 4u*j);
-            if (!bad || bad > last)
+        if (bad_count) {
+            uint32_t *bad_pages = host->allocate(
+                host->context, (size_t)bad_count * sizeof(*bad_pages));
+            int duplicate = 0;
+            if (!bad_pages) {
+                result = IFS_FS_NO_MEMORY;
                 break;
-        }
-        if (j != bad_count) {
-            result = IFS_FS_CORRUPT;
-            break;
+            }
+            for (j = 0; j < bad_count; ++j) {
+                const uint32_t bad = little ?
+                    infiltratr_load_le32(buffer + SWAP_HEADER_BYTES + 4u*j) :
+                    infiltratr_load_be32(buffer + SWAP_HEADER_BYTES + 4u*j);
+                if (!bad || bad > last)
+                    break;
+                bad_pages[j] = bad;
+            }
+            if (j == bad_count) {
+                qsort(bad_pages, bad_count, sizeof(*bad_pages), compare_page);
+                for (j = 1u; j < bad_count; ++j)
+                    if (bad_pages[j] == bad_pages[j - 1u]) {
+                        duplicate = 1;
+                        break;
+                    }
+            }
+            host->release(host->context, bad_pages);
+            if (j != bad_count || duplicate) {
+                result = IFS_FS_CORRUPT;
+                break;
+            }
         }
         *variant = size;
         result = IFS_FS_OK;

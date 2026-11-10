@@ -57,6 +57,21 @@ int main(void)
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
     CHECK(volume->format(&host,4096u,"LD_SWAP",1u)==IFS_FS_UNSUPPORTED);
     CHECK(volume->format(&host,8192u,"LD_SWAP",0u)==IFS_FS_UNSUPPORTED);
+    /* A committed SWAPSPACE2 header cannot list the same bad page twice.
+     * Neither duplicate nor out-of-range metadata may be accepted. */
+    {
+        const uint8_t two[4]={2u,0u,0u,0u};
+        const uint8_t zero[4]={0u,0u,0u,0u};
+        const uint8_t bad[4]={16u,0u,0u,0u};
+        CHECK(pwrite(fd,two,4u,1032)==4);
+        CHECK(pwrite(fd,two,4u,1536)==4);
+        CHECK(pwrite(fd,two,4u,1540)==4);
+        CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+        CHECK(pwrite(fd,bad,4u,1540)==4);
+        CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+        CHECK(pwrite(fd,zero,4u,1032)==4);
+        CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
+    }
     CHECK(pwrite(fd,&corrupt,1u,4095)==1);
     CHECK(core->probe(&host,&variant)!=IFS_FS_OK);
     CHECK(close(fd)==0);
