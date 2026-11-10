@@ -10,7 +10,7 @@ set(INFILTRATR_COMMON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(INFILTRATR_COMMON_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(infiltratr_common
     GIT_REPOSITORY https://github.com/Infiltrator-Projects/Libraries.git
-    GIT_TAG c76ec95ef66fc728df6a906ad75a6a4dd63b419b)
+    GIT_TAG f002d99f5971e6f55aa91b5a245b8307bba6b0ee)
 FetchContent_MakeAvailable(infiltratr_common)
 # SWAP.so links Common; Common's development files must not be installed.
 set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
@@ -39,7 +39,7 @@ if(BUILD_TESTING)
     add_executable(swap-module-test tests/test_swap_module.c)
     target_compile_definitions(swap-module-test PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)
     target_include_directories(swap-module-test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-    target_link_libraries(swap-module-test PRIVATE swap-driver)
+    target_link_libraries(swap-module-test PRIVATE swap-driver InfiltratrCommon::Common)
     add_test(NAME swap-so-interface-and-format COMMAND swap-module-test)
 endif()
 # Generate the same versioned PDF as the standalone native source installer.
