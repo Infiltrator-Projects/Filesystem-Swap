@@ -1,16 +1,17 @@
-# Swap module migration (2026-10-30)
-Defragmenter's original native swap analyser, native data mapper and worker
-are now source-owned by this repository under native/,
-and built into SWAP.so. The original source files are deliberately unchanged;
-a minimal compatibility adapter delegates exact I/O to the pinned, authoritative
-Libraries Common implementation rather than copying Defragmenter's I/O engine.
+# SWAP Common V2 migration — 11 November 2026
 
-SWAP.so exports a versioned format-specific worker/format/verify interface and
-the Common V1 format-neutral PROBE/FORMAT interface. Its test-media SWAPSPACE2
-writer and format verifier live in the module rather than in Defragmenter.
-CI builds the actual SO and runs the imported original native regression plus
-a module formatting/corruption test. The filesystem has no files to relocate,
-so no SWAP defragmentation capability is advertised.
+SWAP.so has one public filesystem entry point:
+`infiltrator_filesystem_api_v2`. Its Common V2 CORE group
+implements bounded read-only SWAPSPACE2 probing, and its VOLUME group
+implements exclusive, durably flushed 4 KiB-page SWAPSPACE2 formatting.
 
-This statement covers SWAP only. It does not certify the other filesystem
-drivers, Defragmenter's whole migration, EFI/KO, or release packaging.
+The retired format-specific SWAP V1 and Common V1 exports, header and
+old host adaptation are removed. No previous-ABI fallback is built.
+The independently owned native analyser remains in this repository,
+but its historical CLI worker is not linked into the shipped SO;
+it is not advertised as a Common V2 file or defrag capability.
+
+The V2 contract test exercises missing media, read-only refusal,
+format, probe, unsupported variants and corrupt signatures. On-media
+qualifications beyond these tests, firmware, kernel, and the other
+filesystems require separate evidence.

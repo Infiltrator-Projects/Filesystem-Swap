@@ -17,8 +17,11 @@ jobs:
       - name: Prove ELF symbols
         run: |
           test -f build/SWAP.so
-          nm -D build/SWAP.so | grep 'infiltrator_filesystem_swap_v1'
-          nm -D build/SWAP.so | grep 'infiltrator_filesystem_api_v1'
+          nm -D build/SWAP.so | grep -F 'infiltrator_filesystem_api_v2'
+          if nm -D build/SWAP.so | grep -E 'infiltrator_filesystem_.*_v1'; then
+            echo 'Retired V1 filesystem ABI leaked into SWAP.so' >&2
+            exit 1
+          fi
       - name: Direct install has exactly one SWAP.so and its current manual
         shell: bash
         run: |

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(FilesystemSwap VERSION 1.0.0 LANGUAGES C)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" SWAP_PACKAGE_VERSION LIMIT_COUNT 1)
+project(FilesystemSwap VERSION ${SWAP_PACKAGE_VERSION} LANGUAGES C)
 include(CTest)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -14,7 +15,7 @@ FetchContent_Declare(infiltratr_common
 FetchContent_MakeAvailable(infiltratr_common)
 # SWAP.so links Common; Common's development files must not be installed.
 set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"1.0.0\"\n")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"${PROJECT_VERSION}\"\n")
 add_library(swap-driver SHARED
     native/swap_native.c
     module/swap_module.c)
