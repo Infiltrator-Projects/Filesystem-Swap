@@ -38,6 +38,7 @@ int main(void) {
         const IfsFsModuleApiV1 *common = infiltrator_filesystem_api_v1();
         const IfsFsModuleApiV2 *v2 = infiltrator_filesystem_api_v2();
         const IfsFsVolumeOpsV1 *group;
+        const IfsFsCoreOpsV1 *core;
         IfsFsHostIoV1 ro = {0};
         IfsFsHostRuntimeV2 writable = {0};
         uint32_t found = 0u;
@@ -49,10 +50,14 @@ int main(void) {
         /* A read-only host has no flush callback, and must still probe. */
         CHECK(ifs_fs_common_api_valid(common, "swap"));
         CHECK(ifs_fs_api_v2_valid(v2, "swap"));
-        CHECK(v2->base_v1 == common);
+        CHECK(ifs_fs_api_v2_native_valid(v2, "swap"));
+        CHECK(v2->base_v1 == NULL);
         CHECK(v2->runtime_profiles == IFS_FS_PROFILE_HOSTED);
         CHECK(common->probe(&ro, &found) == IFS_FS_OK && found == 1u);
         CHECK(!common->mount && !common->create && !common->read);
+        core = (const IfsFsCoreOpsV1 *)ifs_fs_group_v2(v2, IFS_FS_GROUP_CORE);
+        CHECK(core && core->header.capabilities == IFS_FS_CORE_PROBE);
+        CHECK(core->probe && !core->mount && !core->read && !core->write);
         group = (const IfsFsVolumeOpsV1 *)ifs_fs_group_v2(v2, IFS_FS_GROUP_VOLUME);
         CHECK(group && group->header.capabilities == IFS_FS_VOLUME_FORMAT);
         writable.abi_version = IFS_FS_HOST_ABI_V2;
@@ -69,12 +74,14 @@ int main(void) {
         writable.allocate = test_alloc;
         writable.release = test_free;
         CHECK(ifs_fs_host_v2_valid(&writable));
+        CHECK(core->probe(&writable, &found) == IFS_FS_OK && found == 1u);
         CHECK(group->format(&writable, 1u, "LD_SWAP", 0u) == IFS_FS_OK);
         CHECK(m->verify(&io) == 0);
         writable.capabilities = IFS_FS_HOST_READ_ONLY;
         writable.write_at = NULL;
         writable.flush = NULL;
         CHECK(ifs_fs_host_v2_valid(&writable));
+        CHECK(core->probe(&writable, &found) == IFS_FS_OK && found == 1u);
         CHECK(group->format(&writable, 1u, "LD_SWAP", 0u) == IFS_FS_ACCESS);
     }
     uint8_t corrupt = 0;
