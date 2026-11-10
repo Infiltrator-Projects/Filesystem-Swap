@@ -3,7 +3,7 @@
  * live in SWAP.so. No other application writes SWAP headers.
  */
 #include "ifs_swap_module_v1.h"
-#include "infiltratr/filesystem_module.h"
+#include "infiltratr/filesystem_module_v2.h"
 #include "infiltratr/endian.h"
 #include <limits.h>
 #include <stdint.h>
@@ -14,10 +14,11 @@ int ifs_swap_worker_main(int, char **);
 static int valid_io(const IfsSwapIoV1 *io) {
     return io && io->bytes >= SWAP_PAGE * 2u &&
         io->bytes % SWAP_PAGE == 0 && io->bytes / SWAP_PAGE <= UINT32_MAX &&
-        io->read_at && io->flush;
+        io->read_at;
 }
 static int swap_format(const IfsSwapIoV1 *io, const char *label) {
-    if (!valid_io(io) || !io->write_at || !label || strlen(label) > 16u) return -1;
+    if (!valid_io(io) || !io->write_at || !io->flush ||
+        !label || strlen(label) > 16u) return -1;
     uint8_t page[SWAP_PAGE] = {0};
     infiltratr_store_le32(page + 1024u, 1u);
     infiltratr_store_le32(page + 1028u, (uint32_t)(io->bytes / SWAP_PAGE - 1u));
@@ -78,7 +79,9 @@ static int common_probe(const IfsFsHostIoV1 *io, uint32_t *variant) {
 }
 static int common_format(const IfsFsHostIoV1 *io, uint32_t variant, const char *label) {
     if (!io || io->structure_bytes < sizeof(*io) ||
-        !(io->flags & IFS_FS_IO_EXCLUSIVE) || variant != 1u)
+        (io->flags & IFS_FS_IO_READ_ONLY) ||
+        !(io->flags & IFS_FS_IO_EXCLUSIVE) || variant != 1u ||
+        !io->write_at || !io->flush)
         return IFS_FS_INVALID;
     IfsSwapIoV1 a = adapt(io);
     return swap_format(&a, label) == 0 ? IFS_FS_OK : IFS_FS_IO_ERROR;
@@ -93,4 +96,44 @@ static const IfsFsModuleApiV1 common_api = {
 };
 const IfsFsModuleApiV1 *infiltrator_filesystem_api_v1(void) {
     return &common_api;
+}
+
+/* Swap has no mountable namespace, file handles or volume defrag. Common
+ * V2 advertises its real, explicit partition formatting operation only. */
+static int v2_format(const IfsFsHostRuntimeV2 *host,
+                     uint32_t variant, const char *label, uint32_t flags)
+{
+    IfsFsHostFormatIoV1 io = {0};
+    int rc;
+    if (!host) return IFS_FS_INVALID;
+    if (flags) return IFS_FS_UNSUPPORTED;
+    if (host->capabilities & IFS_FS_HOST_READ_ONLY) return IFS_FS_ACCESS;
+    if (host->logical_sector_bytes > SWAP_PAGE ||
+        SWAP_PAGE % host->logical_sector_bytes != 0u)
+        return IFS_FS_UNSUPPORTED;
+    rc = ifs_fs_host_v2_as_format_v1(host, &io);
+    if (rc != IFS_FS_OK) return rc;
+    return common_format(&io.host, variant, label);
+}
+static const IfsFsVolumeOpsV1 volume_ops = {
+    .header = {IFS_FS_GROUP_ABI_V1, sizeof(IfsFsVolumeOpsV1),
+               IFS_FS_GROUP_VOLUME, 0u, IFS_FS_VOLUME_FORMAT},
+    .format = v2_format
+};
+static const IfsFsGroupHeaderV2 *query_group(
+    uint32_t id, uint32_t minimum, uint32_t maximum)
+{
+    return id == IFS_FS_GROUP_VOLUME &&
+        minimum <= IFS_FS_GROUP_ABI_V1 &&
+        maximum >= IFS_FS_GROUP_ABI_V1 ? &volume_ops.header : NULL;
+}
+static const IfsFsModuleApiV2 common_api_v2 = {
+    IFS_FS_COMMON_ABI_V2, sizeof(IfsFsModuleApiV2), "swap",
+    IFS_FS_PROFILE_HOSTED,
+    IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME), &common_api, query_group
+};
+__attribute__((visibility("default")))
+const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void)
+{
+    return &common_api_v2;
 }
