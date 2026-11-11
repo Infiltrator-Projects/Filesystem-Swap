@@ -1,0 +1,55 @@
+name: Archive and retire obsolete Swap V2 review branches
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/retire-reviewed-swap-branches-20261111.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  retire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Preserve both historical heads and retire exact obsolete branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Main's native Common V2 CORE/VOLUME and validated bad-page checks
+          # supersede both divergent experimental implementations.
+          baseline='a1029dced02aeb496a04856c13d4db4a21f84cec'
+          git fetch -q origin main
+          git merge-base --is-ancestor "$baseline" origin/main || { echo 'Swap main changed lineage; do not retire' >&2; exit 1; }
+          grep -Fq 'infiltrator_filesystem_api_v2' module/swap_module.c
+          grep -Fq 'IFS_FS_VOLUME_FORMAT' module/swap_module.c
+          grep -Fq 'qsort(bad_pages' module/swap_module.c
+          branches=('work/common-v2-swap-20261110' 'work/native-v2-core-swap-20261110')
+          shas=('e165bd1995e95d7dae2ac6cde60a6bb8c4d1455e' 'fc34991bbae3979c5efadec498a0db2bc86d8892')
+          tags=('archive/2026-11-11/swap-original-v2-e165bd1995e9' 'archive/2026-11-11/swap-native-v2-fc34991bbae3')
+          # Verify ALL branch refs before mutating any refs.
+          for i in 0 1; do
+            actual=$(gh api "repos/$GH_REPO/git/ref/heads/${branches[$i]}" --jq '.object.sha')
+            test "$actual" = "${shas[$i]}" || { echo 'Swap source ref changed; aborting' >&2; exit 1; }
+          done
+          # Preserve the EXACT heads, including any unique historical commits.
+          for i in 0 1; do
+            if existing=$(gh api "repos/$GH_REPO/git/ref/tags/${tags[$i]}" --jq '.object.sha' 2>/dev/null); then
+              test "$existing" = "${shas[$i]}" || { echo 'Archive tag collision' >&2; exit 1; }
+            else
+              gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/${tags[$i]}" -f sha="${shas[$i]}" >/dev/null
+            fi
+            test "$(gh api "repos/$GH_REPO/git/ref/tags/${tags[$i]}" --jq '.object.sha')" = "${shas[$i]}"
+          done
+          # Prune only unchanged refs after verified archival.
+          for i in 0 1; do
+            test "$(gh api "repos/$GH_REPO/git/ref/heads/${branches[$i]}" --jq '.object.sha')" = "${shas[$i]}"
+            gh api -X DELETE "repos/$GH_REPO/git/refs/heads/${branches[$i]}"
+            if gh api "repos/$GH_REPO/git/ref/heads/${branches[$i]}" >/dev/null 2>&1; then echo 'Swap branch still exists' >&2; exit 1; fi
+          done
+          echo 'Swap: both exact historical heads archived, both development branches retired; main unchanged by retirement.'
