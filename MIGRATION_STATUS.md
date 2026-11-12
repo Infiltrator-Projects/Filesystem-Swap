@@ -5,7 +5,7 @@ SWAP.so has one public filesystem entry point:
 implements bounded read-only SWAPSPACE2 probing, and its VOLUME group
 implements exclusive, durably flushed 4 KiB-page SWAPSPACE2 formatting.
 
-The retired format-specific SWAP V1 and Common V1 exports, header and
+The retired filesystem exports, header and
 old host adaptation are removed. No previous-ABI fallback is built.
 The independently owned native analyser remains in this repository,
 but its historical CLI worker is not linked into the shipped SO;
