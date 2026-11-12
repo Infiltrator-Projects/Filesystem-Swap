@@ -55,6 +55,14 @@ int main(void)
     CHECK(ifs_fs_host_v2_valid(&host));
     CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_OK);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
+    uint8_t uuid1[16]={0},uuid2[16]={0};
+    CHECK(pread(fd,uuid1,sizeof(uuid1),1036)==(ssize_t)sizeof(uuid1));
+    CHECK((uuid1[6]&0xf0u)==0x40u && (uuid1[8]&0xc0u)==0x80u);
+    CHECK(volume->format(&host,4096u,"SECOND_SWAP",0u)==IFS_FS_OK);
+    CHECK(pread(fd,uuid2,sizeof(uuid2),1036)==(ssize_t)sizeof(uuid2));
+    CHECK((uuid2[6]&0xf0u)==0x40u && (uuid2[8]&0xc0u)==0x80u);
+    CHECK(memcmp(uuid1,uuid2,sizeof(uuid1))!=0);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
     CHECK(volume->format(&host,4096u,"LD_SWAP",1u)==IFS_FS_UNSUPPORTED);
     CHECK(volume->format(&host,8192u,"LD_SWAP",0u)==IFS_FS_UNSUPPORTED);
     /* A committed SWAPSPACE2 header cannot list the same bad page twice.
