@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/random.h>
+#include <errno.h>
 extern const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void);
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, \
     "check failed at %s:%d: %s\n",__FILE__,__LINE__,#x);exit(1); } } while(0)
@@ -16,6 +18,23 @@ static int wr(void *ctx,uint64_t at,const void *p,uint32_t n)
 static int flush_fd(void *ctx) { return fsync(*(int *)ctx); }
 static void *allocate(void *ctx,size_t n) { (void)ctx; return malloc(n); }
 static void release(void *ctx,void *p) { (void)ctx; free(p); }
+/* Only the hosted test fixture obtains entropy from Linux. The filesystem
+ * production module consumes the Common V2 host callback exclusively. */
+static int secure_entropy(void *ctx,void *out,uint32_t bytes)
+{
+    (void)ctx;
+    uint8_t *p=out;
+    uint32_t done=0u;
+    while(done<bytes) {
+        ssize_t got=getrandom(p+done,bytes-done,0u);
+        if(got<0 && errno==EINTR)continue;
+        if(got<=0)return -1;
+        done+=(uint32_t)got;
+    }
+    return 0;
+}
+static int unavailable_entropy(void *ctx,void *out,uint32_t bytes)
+{ (void)ctx;(void)out;(void)bytes;return -1; }
 int main(void)
 {
     const IfsFsModuleApiV2 *api=infiltrator_filesystem_api_v2();
@@ -25,6 +44,7 @@ int main(void)
     char path[]="/tmp/ifs-swap-v2.XXXXXX";
     uint32_t variant=0u;
     uint8_t corrupt=0u;
+    uint8_t before[4096]={0},after[4096]={0};
     int fd;
     CHECK(ifs_fs_api_v2_valid(api,"swap"));
     CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE) |
@@ -57,6 +77,17 @@ int main(void)
     host.capabilities=IFS_FS_HOST_EXCLUSIVE|IFS_FS_HOST_DURABLE;
     host.write_at=wr; host.flush=flush_fd;
     CHECK(ifs_fs_host_v2_valid(&host));
+    /* Common V2 entropy is mandatory for genuine UUIDs. Both absent and
+     * failing callbacks must reject formatting without touching the media. */
+    CHECK(pread(fd,before,sizeof(before),0)==(ssize_t)sizeof(before));
+    CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_UNSUPPORTED);
+    CHECK(pread(fd,after,sizeof(after),0)==(ssize_t)sizeof(after));
+    CHECK(memcmp(before,after,sizeof(before))==0);
+    host.random_bytes=unavailable_entropy;
+    CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_IO_ERROR);
+    CHECK(pread(fd,after,sizeof(after),0)==(ssize_t)sizeof(after));
+    CHECK(memcmp(before,after,sizeof(before))==0);
+    host.random_bytes=secure_entropy;
     CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_OK);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
     uint8_t uuid1[16]={0},uuid2[16]={0};

@@ -7,8 +7,6 @@
 #include <infiltratr/filesystem_module_v2.h>
 #include <infiltratr/endian.h>
 #include <stdint.h>
-#include <errno.h>
-#include <sys/random.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,18 +126,13 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
     return result;
 }
 
-/* SWAP UUIDs are on-media identities; never reproduce a constant UUID on
- * every disk. getrandom() blocks for real kernel entropy. Any unavailable
- * RNG fails BEFORE the first media write, preserving the original volume. */
-static int swap_random_uuid(uint8_t uuid[16])
+/* SWAP UUIDs are on-media identities. Randomness comes from Common
+ * V2 host entropy, never an OS-specific import or repeated static UUID.
+ * An unavailable entropy provider fails BEFORE the first media write. */
+static int swap_random_uuid(const IfsFsHostRuntimeV2 *host, uint8_t uuid[16])
 {
-    size_t done=0u;
-    while(done<16u) {
-        const ssize_t got=getrandom(uuid+done,16u-done,0u);
-        if(got<0 && errno==EINTR)continue;
-        if(got<=0)return IFS_FS_IO_ERROR;
-        done+=(size_t)got;
-    }
+    int rc=ifs_fs_host_random_bytes_v2(host,uuid,16u);
+    if(rc!=IFS_FS_OK)return rc;
     uuid[6]=(uint8_t)((uuid[6]&0x0fu)|0x40u); /* RFC 4122 version 4 */
     uuid[8]=(uint8_t)((uuid[8]&0x3fu)|0x80u); /* variant 10 */
     return IFS_FS_OK;
@@ -174,7 +167,7 @@ static int format(const IfsFsHostRuntimeV2 *host, uint32_t variant,
     infiltratr_store_le32(header + 1024u, 1u);
     infiltratr_store_le32(header + 1028u,
         (uint32_t)(host->volume_bytes/SWAP_PAGE - 1u));
-    result=swap_random_uuid(header + 1036u);
+    result=swap_random_uuid(host,header + 1036u);
     if(result!=IFS_FS_OK)return result;
     memcpy(header + 1052u, label, len);
     memcpy(header + 4086u, "SWAPSPACE2", SWAP_SIGNATURE);
