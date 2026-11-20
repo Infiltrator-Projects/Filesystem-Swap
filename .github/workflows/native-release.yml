@@ -45,6 +45,37 @@ jobs:
           test -s "$RUNNER_TEMP/installed/System/Filesystems/$FS_SO"
           test -s "$RUNNER_TEMP/installed/System/Resources/Documentation/$FS_REPO.pdf"
           readelf -Ws "$RUNNER_TEMP/installed/System/Filesystems/$FS_SO" | grep -F "$FS_ABI"
+      - name: Prove exact portable and CPU-native V2 packages are nonbootable
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/swap-v2-boot-policy"
+          mkdir -p "$work/boot" "$work/portable" "$work/native"
+          boot=infiltrator-boot_0.1.69_amd64.deb
+          curl -fsSL --retry 3 \
+            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.69/$boot" \
+            -o "$work/$boot"
+          printf '%s  %s\n' \
+            73429727974a902372f7d2644d00bb1f527e42b4454f9f3cafbf8ef1ad6c9a8e \
+            "$work/$boot" | sha256sum -c -
+          dpkg-deb -x "$work/$boot" "$work/boot"
+          validator="$work/boot/usr/lib/infiltrator-boot/validate-module"
+          dpkg-deb -x dist/*.deb "$work/portable"
+          dpkg-deb -x "$deb_file" "$work/native"
+          for dir in portable native; do
+            root="$work/$dir"
+            module="$root/System/Filesystems/SWAP.so"
+            test -s "$module"
+            test "$(find "$root" -type f | wc -l)" -eq 2
+            ! find "$root" -name '*.ko' | grep .
+            nm -D --defined-only "$module" | grep -F infiltrator_filesystem_api_v2
+            ! nm -D --defined-only "$module" | grep -E 'infiltrator_filesystem_.*_v1'
+            if "$validator" "$module"; then
+              echo "ERROR: BOOT accepted nonbootable SWAP from $dir" >&2
+              exit 1
+            fi
+          done
+          echo SWAP_HOSTED_COMMON_V2_AND_BOOT_REJECTION_PASS
       - uses: actions/upload-artifact@v4
         with:
           name: native-filesystem-release
