@@ -22,6 +22,27 @@ jobs:
             echo 'Retired V1 filesystem ABI leaked into SWAP.so' >&2
             exit 1
           fi
+      - name: Confirm SWAP.so is rejected by the real BOOT validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(mktemp -d)"
+          trap 'rm -rf "$temp"' EXIT
+          boot=infiltrator-boot_0.1.46_amd64.deb
+          curl -fsSL --retry 3 \
+            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.46/$boot" \
+            -o "$temp/$boot"
+          printf '%s  %s\n' \
+            9ab605a5312a54741d4a002e1131823ef7e28a73957f6473bea88a9c64d10035 \
+            "$temp/$boot" | sha256sum -c -
+          dpkg-deb -x "$temp/$boot" "$temp/boot"
+          DESTDIR="$temp/installed" cmake --install build
+          validator="$temp/boot/usr/lib/infiltrator-boot/validate-module"
+          if "$validator" "$temp/installed/System/Filesystems/SWAP.so"; then
+            echo 'BOOT incorrectly accepted the nonbootable SWAP namespace' >&2
+            exit 1
+          fi
+          echo 'Nonbootable Common V2 SWAP correctly refused by BOOT'
       - name: Direct install has exactly one SWAP.so and its current manual
         shell: bash
         run: |

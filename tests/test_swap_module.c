@@ -32,7 +32,11 @@ int main(void)
     core=(const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     volume=(const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
     CHECK(core && volume && core->probe && volume->format);
-    CHECK(!core->mount && !core->write);
+    /* This is not a bootable volume: no mount, namespace or file callbacks. */
+    CHECK(api->runtime_profiles == IFS_FS_PROFILE_HOSTED);
+    CHECK(core->header.capabilities == IFS_FS_CORE_PROBE);
+    CHECK(!core->mount && !core->unmount && !core->stat &&
+          !core->directory_entry && !core->read && !core->write);
     CHECK(volume->header.capabilities==IFS_FS_VOLUME_FORMAT);
     fd=mkstemp(path); CHECK(fd>=0);
     CHECK(unlink(path)==0); CHECK(ftruncate(fd,16*4096)==0);

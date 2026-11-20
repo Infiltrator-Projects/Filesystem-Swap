@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
- * SWAP.so exposes only the canonical, freestanding Common V2 contract.
- * Swap has no mountable namespace or file-defragmentation service.
+ * SWAP.so exposes the Common V2 hosted probe/format contract only.
+ * Swap space has no directory namespace, cannot contain boot payloads and
+ * must deliberately fail BOOT's freestanding V2 module validation.
+ * Random identifiers require the hosted OS entropy service.
  */
 #include <infiltratr/filesystem_module_v2.h>
 #include <infiltratr/endian.h>
