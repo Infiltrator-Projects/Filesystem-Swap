@@ -61,7 +61,9 @@ jobs:
           dpkg-deb -x "$work/$boot" "$work/boot"
           validator="$work/boot/usr/lib/infiltrator-boot/validate-module"
           dpkg-deb -x dist/*.deb "$work/portable"
-          dpkg-deb -x "$deb_file" "$work/native"
+          native_deb=$(find "$RUNNER_TEMP/native" -maxdepth 1 -name '*.deb' -print -quit)
+          test -s "$native_deb"
+          dpkg-deb -x "$native_deb" "$work/native"
           for dir in portable native; do
             root="$work/$dir"
             module="$root/System/Filesystems/SWAP.so"
