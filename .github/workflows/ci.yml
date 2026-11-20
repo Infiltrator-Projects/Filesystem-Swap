@@ -28,12 +28,12 @@ jobs:
           set -euo pipefail
           temp="$(mktemp -d)"
           trap 'rm -rf "$temp"' EXIT
-          boot=infiltrator-boot_0.1.69_amd64.deb
+          boot=infiltrator-boot_0.1.77_amd64.deb
           curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.69/$boot" \
+            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
             -o "$temp/$boot"
           printf '%s  %s\n' \
-            73429727974a902372f7d2644d00bb1f527e42b4454f9f3cafbf8ef1ad6c9a8e \
+            4b2fa8eaa116b7e719329c5bbaa39ee3a093fbe1c1eac0c57440d0f82217d8a5 \
             "$temp/$boot" | sha256sum -c -
           dpkg-deb -x "$temp/$boot" "$temp/boot"
           DESTDIR="$temp/installed" cmake --install build
