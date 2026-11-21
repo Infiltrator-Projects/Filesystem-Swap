@@ -33,7 +33,7 @@ jobs:
             "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
             -o "$temp/$boot"
           printf '%s  %s\n' \
-            4b2fa8eaa116b7e719329c5bbaa39ee3a093fbe1c1eac0c57440d0f82217d8a5 \
+            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
             "$temp/$boot" | sha256sum -c -
           dpkg-deb -x "$temp/$boot" "$temp/boot"
           DESTDIR="$temp/installed" cmake --install build
