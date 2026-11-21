@@ -47,9 +47,11 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
     uint8_t *buffer;
     uint32_t i;
     int result = IFS_FS_NOT_FOUND;
-    if (!variant || !ifs_fs_host_v2_valid(host))
+    if (!variant)
         return IFS_FS_INVALID;
     *variant = 0u;
+    if (!ifs_fs_host_v2_valid(host))
+        return IFS_FS_INVALID;
     buffer = host->allocate(host->context, SWAP_MAX_PAGE);
     if (!buffer)
         return IFS_FS_NO_MEMORY;
