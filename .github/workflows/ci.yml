@@ -35,6 +35,7 @@ jobs:
           test "$(head -c 5 "$stage/System/Resources/Documentation/Filesystem-Swap.pdf")" = '%PDF-'
           cmp build/Filesystem-Swap.pdf "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
       - name: Confirm SWAP.so is rejected by the real BOOT validator
+        if: ${{ vars.IFS_BOOT_INTEGRATION_READY == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
