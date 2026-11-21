@@ -16,10 +16,9 @@ FetchContent_MakeAvailable(infiltratr_common)
 # SWAP.so links Common; Common's development files must not be installed.
 set_property(DIRECTORY "${infiltratr_common_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.h" "#define LD_VERSION \"${PROJECT_VERSION}\"\n")
-add_library(swap-driver SHARED
-    native/swap_native.c
-    module/swap_module.c)
-set_target_properties(swap-driver PROPERTIES PREFIX "" OUTPUT_NAME "SWAP" SUFFIX ".so")
+add_library(swap-driver SHARED module/swap_module.c)
+set_target_properties(swap-driver PROPERTIES PREFIX "" OUTPUT_NAME "SWAP" SUFFIX ".so"
+    C_VISIBILITY_PRESET hidden)
 target_compile_definitions(swap-driver PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)
 target_include_directories(swap-driver PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/native"
@@ -28,11 +27,11 @@ target_include_directories(swap-driver PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(swap-driver PRIVATE InfiltratrCommon::Common)
 if(BUILD_TESTING)
-    add_executable(swap-native-test tests/test_swap_native.c)
+    add_executable(swap-native-test tests/test_swap_native.c native/swap_native.c)
     target_compile_definitions(swap-native-test PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)
     target_include_directories(swap-native-test PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/native")
-    target_link_libraries(swap-native-test PRIVATE swap-driver)
+        "${CMAKE_CURRENT_SOURCE_DIR}/native" "${CMAKE_CURRENT_SOURCE_DIR}/compat")
+    target_link_libraries(swap-native-test PRIVATE InfiltratrCommon::Common)
     add_test(NAME swap-native-parsing COMMAND swap-native-test)
     add_executable(swap-module-test tests/test_swap_module.c)
     target_compile_definitions(swap-module-test PRIVATE _GNU_SOURCE _FILE_OFFSET_BITS=64)

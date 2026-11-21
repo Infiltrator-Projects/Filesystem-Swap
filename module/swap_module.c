@@ -45,7 +45,7 @@ static int transfer(const IfsFsHostRuntimeV2 *host, uint64_t at,
 static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
 {
     uint8_t *buffer;
-    uint32_t i;
+    uint32_t i, loaded = 0u;
     int result = IFS_FS_NOT_FOUND;
     if (!variant)
         return IFS_FS_INVALID;
@@ -58,13 +58,15 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
     for (i = 0; i < sizeof(pages)/sizeof(pages[0]); ++i) {
         uint32_t size = pages[i], last, bad_count, j, le, be;
         int little;
-        if (host->volume_bytes < size ||
-            host->logical_sector_bytes > size ||
-            size % host->logical_sector_bytes)
-            continue;
-        result = transfer(host, 0u, buffer, size, 0);
+        if (host->volume_bytes < size)
+            break;
+        /* The swap page belongs to the image. A host that exposes larger
+         * logical sectors can still inspect it through a bounded sector read. */
+        result = ifs_fs_host_read_bytes_v2(host, loaded, buffer + loaded,
+                                           size - loaded);
         if (result != IFS_FS_OK)
             break;
+        loaded = size;
         if (!memcmp(buffer, hibernate_magic, sizeof(hibernate_magic))) {
             result = IFS_FS_CORRUPT;
             break;

@@ -13,6 +13,11 @@ extern const IfsFsModuleApiV2 *infiltrator_filesystem_api_v2(void);
     "check failed at %s:%d: %s\n",__FILE__,__LINE__,#x);exit(1); } } while(0)
 static int rd(void *ctx,uint64_t at,void *p,uint32_t n)
 { return pread(*(int *)ctx,p,n,(off_t)at)==(ssize_t)n ? 0 : -1; }
+static int read_8k(void *ctx,uint64_t at,void *p,uint32_t n)
+{
+    CHECK(at % 8192u == 0u && n == 8192u);
+    return rd(ctx,at,p,n);
+}
 static int wr(void *ctx,uint64_t at,const void *p,uint32_t n)
 { return pwrite(*(int *)ctx,p,n,(off_t)at)==(ssize_t)n ? 0 : -1; }
 static int flush_fd(void *ctx) { return fsync(*(int *)ctx); }
@@ -97,6 +102,23 @@ int main(void)
     host.random_bytes=secure_entropy;
     CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_OK);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
+    /* A 4 KiB swap header can reside on an 8 KiB logical-sector host.
+     * Expose only aligned reads and compare the entire disposable image. */
+    {
+        IfsFsHostRuntimeV2 large_sector=host;
+        uint8_t old_image[16u*4096u], new_image[sizeof(old_image)];
+        large_sector.capabilities=IFS_FS_HOST_READ_ONLY;
+        large_sector.logical_sector_bytes=8192u;
+        large_sector.physical_sector_bytes=8192u;
+        large_sector.maximum_transfer_bytes=8192u;
+        large_sector.read_at=read_8k;
+        large_sector.write_at=NULL;
+        large_sector.flush=NULL;
+        CHECK(pread(fd,old_image,sizeof(old_image),0)==(ssize_t)sizeof(old_image));
+        CHECK(core->probe(&large_sector,&variant)==IFS_FS_OK && variant==4096u);
+        CHECK(pread(fd,new_image,sizeof(new_image),0)==(ssize_t)sizeof(new_image));
+        CHECK(memcmp(old_image,new_image,sizeof(old_image))==0);
+    }
     uint8_t uuid1[16]={0},uuid2[16]={0};
     CHECK(pread(fd,uuid1,sizeof(uuid1),1036)==(ssize_t)sizeof(uuid1));
     CHECK((uuid1[6]&0xf0u)==0x40u && (uuid1[8]&0xc0u)==0x80u);
