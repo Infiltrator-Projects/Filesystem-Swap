@@ -51,17 +51,10 @@ jobs:
           set -euo pipefail
           work="$RUNNER_TEMP/swap-v2-boot-policy"
           mkdir -p "$work/boot" "$work/portable" "$work/native"
-          boot=infiltrator-boot_0.1.77_amd64.deb
-          curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
-            -o "$work/$boot"
-          printf '%s  %s\n' \
-            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
-            "$work/$boot" | sha256sum -c -
-          dpkg-deb -x "$work/$boot" "$work/boot"
-          validator="$work/boot/usr/lib/infiltrator-boot/validate-module"
+          source tests/require-rebuilt-boot.sh
+          validator="$IFS_BOOT_VALIDATOR"
           if [[ ! -x "$validator" ]]; then
-            echo "BOOT 0.1.77 package lacks the required real validate-module executable" >&2
+            echo "rebuilt BOOT package lacks the required real validate-module executable" >&2
             exit 1
           fi
           dpkg-deb -x dist/*.deb "$work/portable"
@@ -76,11 +69,9 @@ jobs:
             ! find "$root" -name '*.ko' | grep .
             nm -D --defined-only "$module" | grep -F infiltrator_filesystem_api_v2
             ! nm -D --defined-only "$module" | grep -E 'infiltrator_filesystem_.*_v1'
-            if "$validator" "$module"; then
-              echo "ERROR: BOOT accepted nonbootable SWAP from $dir" >&2
-              exit 1
-            fi
           done
+          bash tests/check-consumer-exclusion.sh "$validator" \
+            "$work/portable/System/Filesystems/SWAP.so" "$work/native/System/Filesystems/SWAP.so"
           echo SWAP_HOSTED_COMMON_V2_AND_BOOT_REJECTION_PASS
       - uses: actions/upload-artifact@v4
         with:

@@ -22,31 +22,6 @@ jobs:
             echo 'Retired V1 filesystem ABI leaked into SWAP.so' >&2
             exit 1
           fi
-      - name: Confirm SWAP.so is rejected by the real BOOT validator
-        shell: bash
-        run: |
-          set -euo pipefail
-          temp="$(mktemp -d)"
-          trap 'rm -rf "$temp"' EXIT
-          boot=infiltrator-boot_0.1.77_amd64.deb
-          curl -fsSL --retry 3 \
-            "https://github.com/Infiltrator-Projects/Boot/releases/download/v0.1.77/$boot" \
-            -o "$temp/$boot"
-          printf '%s  %s\n' \
-            c70fd0bec2d6a2728e9ceddb4149c58ef63955ecfe42184a18ea960ede6a1c5c \
-            "$temp/$boot" | sha256sum -c -
-          dpkg-deb -x "$temp/$boot" "$temp/boot"
-          DESTDIR="$temp/installed" cmake --install build
-          validator="$temp/boot/usr/lib/infiltrator-boot/validate-module"
-          if [[ ! -x "$validator" ]]; then
-            echo "BOOT 0.1.77 package lacks the required real validate-module executable" >&2
-            exit 1
-          fi
-          if "$validator" "$temp/installed/System/Filesystems/SWAP.so"; then
-            echo 'BOOT incorrectly accepted the nonbootable SWAP namespace' >&2
-            exit 1
-          fi
-          echo 'Nonbootable Common V2 SWAP correctly refused by BOOT'
       - name: Direct install has exactly one SWAP.so and its current manual
         shell: bash
         run: |
@@ -59,6 +34,21 @@ jobs:
           test -s "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
           test "$(head -c 5 "$stage/System/Resources/Documentation/Filesystem-Swap.pdf")" = '%PDF-'
           cmp build/Filesystem-Swap.pdf "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
+      - name: Confirm SWAP.so is rejected by the real BOOT validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(mktemp -d)"
+          trap 'rm -rf "$temp"' EXIT
+          source tests/require-rebuilt-boot.sh
+          DESTDIR="$temp/installed" cmake --install build
+          validator="$IFS_BOOT_VALIDATOR"
+          if [[ ! -x "$validator" ]]; then
+            echo "rebuilt BOOT package lacks the required real validate-module executable" >&2
+            exit 1
+          fi
+          bash tests/check-consumer-exclusion.sh "$validator" "$temp/installed/System/Filesystems/SWAP.so"
+          echo 'Nonbootable Common V2 SWAP correctly refused by BOOT'
       - uses: actions/upload-artifact@v4
         with:
           name: SWAP-so
