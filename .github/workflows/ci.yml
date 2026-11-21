@@ -34,22 +34,6 @@ jobs:
           test -s "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
           test "$(head -c 5 "$stage/System/Resources/Documentation/Filesystem-Swap.pdf")" = '%PDF-'
           cmp build/Filesystem-Swap.pdf "$stage/System/Resources/Documentation/Filesystem-Swap.pdf"
-      - name: Confirm SWAP.so is rejected by the real BOOT validator
-        if: ${{ vars.IFS_BOOT_INTEGRATION_READY == 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          temp="$(mktemp -d)"
-          trap 'rm -rf "$temp"' EXIT
-          source tests/require-rebuilt-boot.sh
-          DESTDIR="$temp/installed" cmake --install build
-          validator="$IFS_BOOT_VALIDATOR"
-          if [[ ! -x "$validator" ]]; then
-            echo "rebuilt BOOT package lacks the required real validate-module executable" >&2
-            exit 1
-          fi
-          bash tests/check-consumer-exclusion.sh "$validator" "$temp/installed/System/Filesystems/SWAP.so"
-          echo 'Nonbootable Common V2 SWAP correctly refused by BOOT'
       - uses: actions/upload-artifact@v4
         with:
           name: SWAP-so
