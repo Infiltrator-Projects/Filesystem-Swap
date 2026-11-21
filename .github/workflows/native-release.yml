@@ -45,18 +45,17 @@ jobs:
           test -s "$RUNNER_TEMP/installed/System/Filesystems/$FS_SO"
           test -s "$RUNNER_TEMP/installed/System/Resources/Documentation/$FS_REPO.pdf"
           readelf -Ws "$RUNNER_TEMP/installed/System/Filesystems/$FS_SO" | grep -F "$FS_ABI"
-      - name: Prove exact portable and CPU-native V2 packages are nonbootable
+      # SWAP has no firmware reader and must not depend on BOOT's availability.
+      # Verify its real Common V2 exclusion contract without a BOOT download.
+      - name: Verify SWAP Common V2 nonbootability and both packaged carriers
         shell: bash
         run: |
           set -euo pipefail
-          work="$RUNNER_TEMP/swap-v2-boot-policy"
-          mkdir -p "$work/boot" "$work/portable" "$work/native"
-          source tests/require-rebuilt-boot.sh
-          validator="$IFS_BOOT_VALIDATOR"
-          if [[ ! -x "$validator" ]]; then
-            echo "rebuilt BOOT package lacks the required real validate-module executable" >&2
-            exit 1
-          fi
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          work="$RUNNER_TEMP/swap-v2-nonbootable"
+          mkdir -p "$work/portable" "$work/native"
           dpkg-deb -x dist/*.deb "$work/portable"
           native_deb=$(find "$RUNNER_TEMP/native" -maxdepth 1 -name '*.deb' -print -quit)
           test -s "$native_deb"
@@ -69,10 +68,9 @@ jobs:
             ! find "$root" -name '*.ko' | grep .
             nm -D --defined-only "$module" | grep -F infiltrator_filesystem_api_v2
             ! nm -D --defined-only "$module" | grep -E 'infiltrator_filesystem_.*_v1'
+            ! readelf -SW "$module" | grep -F '.infiltrator_boot'
           done
-          bash tests/check-consumer-exclusion.sh "$validator" \
-            "$work/portable/System/Filesystems/SWAP.so" "$work/native/System/Filesystems/SWAP.so"
-          echo SWAP_HOSTED_COMMON_V2_AND_BOOT_REJECTION_PASS
+          echo SWAP_HOSTED_V2_NONBOOTABLE_CARRIERS_PASS
       - uses: actions/upload-artifact@v4
         with:
           name: native-filesystem-release
