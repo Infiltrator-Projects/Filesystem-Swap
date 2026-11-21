@@ -38,6 +38,10 @@ jobs:
           dpkg-deb -x "$temp/$boot" "$temp/boot"
           DESTDIR="$temp/installed" cmake --install build
           validator="$temp/boot/usr/lib/infiltrator-boot/validate-module"
+          if [[ ! -x "$validator" ]]; then
+            echo "BOOT 0.1.77 package lacks the required real validate-module executable" >&2
+            exit 1
+          fi
           if "$validator" "$temp/installed/System/Filesystems/SWAP.so"; then
             echo 'BOOT incorrectly accepted the nonbootable SWAP namespace' >&2
             exit 1

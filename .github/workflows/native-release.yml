@@ -60,6 +60,10 @@ jobs:
             "$work/$boot" | sha256sum -c -
           dpkg-deb -x "$work/$boot" "$work/boot"
           validator="$work/boot/usr/lib/infiltrator-boot/validate-module"
+          if [[ ! -x "$validator" ]]; then
+            echo "BOOT 0.1.77 package lacks the required real validate-module executable" >&2
+            exit 1
+          fi
           dpkg-deb -x dist/*.deb "$work/portable"
           native_deb=$(find "$RUNNER_TEMP/native" -maxdepth 1 -name '*.deb' -print -quit)
           test -s "$native_deb"
