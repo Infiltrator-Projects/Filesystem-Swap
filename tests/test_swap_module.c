@@ -72,7 +72,14 @@ int main(void)
     host.allocate=allocate;
     host.release=release;
     CHECK(ifs_fs_host_v2_valid(&host));
-    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND);
+    {
+        IfsFsHostRuntimeV2 invalid_host=host;
+        invalid_host.abi_version=1u;
+        variant=UINT32_MAX;
+        CHECK(core->probe(&invalid_host,&variant)==IFS_FS_INVALID && variant==0u);
+    }
+    variant=UINT32_MAX;
+    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND && variant==0u);
     CHECK(volume->format(&host,4096u,"LD_SWAP",0u)==IFS_FS_ACCESS);
     host.capabilities=IFS_FS_HOST_EXCLUSIVE|IFS_FS_HOST_DURABLE;
     host.write_at=wr; host.flush=flush_fd;
