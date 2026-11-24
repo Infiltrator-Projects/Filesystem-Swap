@@ -29,7 +29,7 @@ static int transfer(const IfsFsHostRuntimeV2 *host, uint64_t at,
                     uint8_t *buffer, uint32_t bytes, int write)
 {
     uint32_t index, sector = host->logical_sector_bytes;
-    if (bytes % sector || at > host->volume_bytes ||
+    if (at % sector || bytes % sector || at > host->volume_bytes ||
         bytes > host->volume_bytes - at)
         return IFS_FS_INVALID;
     for (index = 0; index < bytes; index += sector) {
@@ -142,45 +142,88 @@ static int swap_random_uuid(const IfsFsHostRuntimeV2 *host, uint8_t uuid[16])
     return IFS_FS_OK;
 }
 
+/* A prior swap signature must not survive a failed destructive reformat.
+ * Detect candidate page-end signatures using the same on-disk page sizes
+ * as PROBE; clear only a matching signature, including one beyond the
+ * newly selected page. The host supplies the exclusive durable lease. */
+static int retire_signatures(const IfsFsHostRuntimeV2 *host)
+{
+    const uint8_t zero[SWAP_SIGNATURE]={0};
+    uint8_t magic[SWAP_SIGNATURE];
+    for (size_t i=0;i<sizeof(pages)/sizeof(pages[0]);++i) {
+        if (pages[i]>host->volume_bytes) break;
+        const uint64_t at=pages[i]-SWAP_SIGNATURE;
+        int rc=ifs_fs_host_read_bytes_v2(host,at,magic,sizeof(magic));
+        if (rc!=IFS_FS_OK) return rc;
+        if (!memcmp(magic,"SWAPSPACE2",sizeof(magic))) {
+            rc=ifs_fs_host_write_bytes_v2(host,at,zero,sizeof(zero));
+            if (rc!=IFS_FS_OK) return rc;
+        }
+    }
+    return host->flush(host->context) ? IFS_FS_IO_ERROR : IFS_FS_OK;
+}
+
 static int format(const IfsFsHostRuntimeV2 *host, uint32_t variant,
                   const char *label, uint32_t flags)
 {
-    uint8_t header[SWAP_PAGE] = {0};
-    uint32_t observed = 0u;
-    size_t len;
-    int result;
-    if (!ifs_fs_host_v2_valid(host))
-        return IFS_FS_INVALID;
-    if (flags || variant != SWAP_PAGE)
-        return IFS_FS_UNSUPPORTED;
+    uint32_t observed=0u;
+    int supported=0;
+    if (!ifs_fs_host_v2_valid(host)) return IFS_FS_INVALID;
+    for (size_t i=0;i<sizeof(pages)/sizeof(pages[0]);++i)
+        if (pages[i]==variant) supported=1;
+    if (flags || !supported) return IFS_FS_UNSUPPORTED;
     if ((host->capabilities & IFS_FS_HOST_READ_ONLY) ||
         !(host->capabilities & IFS_FS_HOST_EXCLUSIVE) ||
         !(host->capabilities & IFS_FS_HOST_DURABLE))
         return IFS_FS_ACCESS;
-    if (host->logical_sector_bytes > SWAP_PAGE ||
-        SWAP_PAGE % host->logical_sector_bytes ||
-        host->volume_bytes < 2u*SWAP_PAGE ||
-        host->volume_bytes % SWAP_PAGE ||
-        host->volume_bytes/SWAP_PAGE > UINT32_MAX)
+    if (host->logical_sector_bytes>variant ||
+        variant%host->logical_sector_bytes ||
+        host->volume_bytes<2u*(uint64_t)variant ||
+        host->volume_bytes%variant ||
+        host->volume_bytes/variant>UINT32_MAX)
         return IFS_FS_UNSUPPORTED;
-    if (!label)
-        return IFS_FS_INVALID;
-    len = strlen(label);
-    if (len > 16u)
-        return IFS_FS_INVALID;
-    infiltratr_store_le32(header + 1024u, 1u);
-    infiltratr_store_le32(header + 1028u,
-        (uint32_t)(host->volume_bytes/SWAP_PAGE - 1u));
-    result=swap_random_uuid(host,header + 1036u);
-    if(result!=IFS_FS_OK)return result;
-    memcpy(header + 1052u, label, len);
-    memcpy(header + 4086u, "SWAPSPACE2", SWAP_SIGNATURE);
-    result = transfer(host, 0u, header, SWAP_PAGE, 1);
-    if (result != IFS_FS_OK || host->flush(host->context))
-        return IFS_FS_IO_ERROR;
-    result = probe(host, &observed);
-    return result == IFS_FS_OK && observed == SWAP_PAGE ?
-        IFS_FS_OK : IFS_FS_IO_ERROR;
+    if (!label) return IFS_FS_INVALID;
+    size_t len=0;
+    while (len<=16u && label[len]) ++len;
+    if (len>16u) return IFS_FS_INVALID;
+    uint8_t *header=host->allocate(host->context,variant);
+    if (!header) return IFS_FS_NO_MEMORY;
+    memset(header,0,variant);
+    infiltratr_store_le32(header+1024u,1u);
+    infiltratr_store_le32(header+1028u,
+        (uint32_t)(host->volume_bytes/variant-1u));
+    int result=swap_random_uuid(host,header+1036u);
+    if (result!=IFS_FS_OK) goto done;
+    memcpy(header+1052u,label,len);
+
+    /* Publish the magic only after the unsigned header has reached
+     * durable storage. With a 4 KiB host sector this remains valid even
+     * when the entire swap page is one indivisible host transfer.
+     * A failed final flush is not success; retire the magic best effort. */
+    result=retire_signatures(host);
+    if (result!=IFS_FS_OK) goto done;
+    result=transfer(host,0u,header,variant,1);
+    if (result!=IFS_FS_OK) goto done;
+    if (host->flush(host->context)) {
+        result=IFS_FS_IO_ERROR;
+        goto done;
+    }
+    memcpy(header+variant-SWAP_SIGNATURE,"SWAPSPACE2",SWAP_SIGNATURE);
+    const uint32_t sector=host->logical_sector_bytes;
+    result=transfer(host,variant-sector,header+variant-sector,sector,1);
+    if (result!=IFS_FS_OK || host->flush(host->context)) {
+        const uint8_t zero[SWAP_SIGNATURE]={0};
+        (void)ifs_fs_host_write_bytes_v2(host,variant-SWAP_SIGNATURE,
+                                         zero,sizeof(zero));
+        (void)host->flush(host->context);
+        result=IFS_FS_IO_ERROR;
+        goto done;
+    }
+    result=probe(host,&observed);
+    if (result!=IFS_FS_OK || observed!=variant) result=IFS_FS_IO_ERROR;
+done:
+    host->release(host->context,header);
+    return result;
 }
 
 static const IfsFsCoreOpsV2 core = {

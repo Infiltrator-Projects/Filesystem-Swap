@@ -18,8 +18,12 @@ static int read_8k(void *ctx,uint64_t at,void *p,uint32_t n)
     CHECK(at % 8192u == 0u && n == 8192u);
     return rd(ctx,at,p,n);
 }
+static unsigned writes,fail_write;
 static int wr(void *ctx,uint64_t at,const void *p,uint32_t n)
-{ return pwrite(*(int *)ctx,p,n,(off_t)at)==(ssize_t)n ? 0 : -1; }
+{
+    if (fail_write && ++writes==fail_write) return -1;
+    return pwrite(*(int *)ctx,p,n,(off_t)at)==(ssize_t)n ? 0 : -1;
+}
 static int flush_fd(void *ctx) { return fsync(*(int *)ctx); }
 static void *allocate(void *ctx,size_t n) { (void)ctx; return malloc(n); }
 static void release(void *ctx,void *p) { (void)ctx; free(p); }
@@ -128,7 +132,7 @@ int main(void)
     CHECK(memcmp(uuid1,uuid2,sizeof(uuid1))!=0);
     CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
     CHECK(volume->format(&host,4096u,"LD_SWAP",1u)==IFS_FS_UNSUPPORTED);
-    CHECK(volume->format(&host,8192u,"LD_SWAP",0u)==IFS_FS_UNSUPPORTED);
+    CHECK(volume->format(&host,6000u,"LD_SWAP",0u)==IFS_FS_UNSUPPORTED);
     /* A committed SWAPSPACE2 header cannot list the same bad page twice.
      * Neither duplicate nor out-of-range metadata may be accepted. */
     {
@@ -146,6 +150,34 @@ int main(void)
     }
     CHECK(pwrite(fd,&corrupt,1u,4095)==1);
     CHECK(core->probe(&host,&variant)!=IFS_FS_OK);
+    /* Independently inspect every supported native page geometry, including
+     * replacement of a larger header by a smaller one. */
+    CHECK(ftruncate(fd,16u*65536u)==0);
+    host.volume_bytes=16u*65536u;
+    const uint32_t sizes[]={65536u,32768u,16384u,8192u,4096u};
+    for (unsigned i=0;i<sizeof(sizes)/sizeof(sizes[0]);++i) {
+        uint8_t magic[10],last[4];
+        CHECK(volume->format(&host,sizes[i],"PAGE_TEST",0u)==IFS_FS_OK);
+        CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==sizes[i]);
+        CHECK(pread(fd,magic,sizeof(magic),sizes[i]-10u)==(ssize_t)sizeof(magic));
+        CHECK(!memcmp(magic,"SWAPSPACE2",10u));
+        CHECK(pread(fd,last,sizeof(last),1028)==(ssize_t)sizeof(last));
+        uint32_t last_page=(uint32_t)last[0]|((uint32_t)last[1]<<8)|
+                           ((uint32_t)last[2]<<16)|((uint32_t)last[3]<<24);
+        CHECK(last_page==host.volume_bytes/sizes[i]-1u);
+        if(i) {
+            CHECK(pread(fd,magic,sizeof(magic),sizes[i-1u]-10u)==(ssize_t)sizeof(magic));
+            CHECK(memcmp(magic,"SWAPSPACE2",10u)!=0);
+        }
+    }
+    /* Interrupt a reformat after retiring the old magic but before the
+     * new unsigned header is complete. No valid signature may survive. */
+    writes=0u;fail_write=2u;
+    CHECK(volume->format(&host,8192u,"INTERRUPTED",0u)==IFS_FS_IO_ERROR);
+    fail_write=0u;
+    CHECK(core->probe(&host,&variant)==IFS_FS_NOT_FOUND && variant==0u);
+    CHECK(volume->format(&host,8192u,"RECOVERED",0u)==IFS_FS_OK);
+    CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==8192u);
     CHECK(close(fd)==0);
     return 0;
 }
