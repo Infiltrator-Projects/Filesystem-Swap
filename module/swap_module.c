@@ -16,6 +16,16 @@ static const uint32_t pages[] = {4096u,8192u,16384u,32768u,65536u};
 static const uint8_t hibernate_magic[8] =
     {0xedu,0xc3u,0x02u,0xe9u,0x98u,0x56u,0xe5u,0x0cu};
 
+/* A suspend image uses the same page-end signature field as swap.
+ * Distinguish it from both uninitialised media and active swap. The
+ * original image is never rewritten as a side effect of a read-only probe. */
+static int is_suspend_signature(const uint8_t *p)
+{
+    return !memcmp(p,"S1SUSPEND",9u) || !memcmp(p,"S2SUSPEND",9u) ||
+           !memcmp(p,"ULSUSPEND",9u) || !memcmp(p,hibernate_magic,8u) ||
+           !memcmp(p,"LINHIB0001",10u);
+}
+
 /* The on-disk bad-page table must not count a page twice. Sorting a
  * bounded scratch table avoids quadratic checks on 64 KiB swap headers. */
 static int compare_page(const void *left, const void *right)
@@ -71,6 +81,10 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
             result = IFS_FS_CORRUPT;
             break;
         }
+        if (is_suspend_signature(buffer+size-SWAP_SIGNATURE)) {
+            result=IFS_FS_UNSUPPORTED;
+            break;
+        }
         if (memcmp(buffer + size - SWAP_SIGNATURE, "SWAPSPACE2",
                    SWAP_SIGNATURE)) {
             result = IFS_FS_NOT_FOUND;
@@ -88,6 +102,7 @@ static int probe(const IfsFsHostRuntimeV2 *host, uint32_t *variant)
         bad_count = little ? infiltratr_load_le32(buffer + 1032u) :
                              infiltratr_load_be32(buffer + 1032u);
         if (!last || (uint64_t)last + 1u > host->volume_bytes / size ||
+            bad_count >= last ||
             bad_count > (size - SWAP_HEADER_BYTES - SWAP_SIGNATURE)/4u) {
             result = IFS_FS_CORRUPT;
             break;
@@ -155,7 +170,8 @@ static int retire_signatures(const IfsFsHostRuntimeV2 *host)
         const uint64_t at=pages[i]-SWAP_SIGNATURE;
         int rc=ifs_fs_host_read_bytes_v2(host,at,magic,sizeof(magic));
         if (rc!=IFS_FS_OK) return rc;
-        if (!memcmp(magic,"SWAPSPACE2",sizeof(magic))) {
+        if (!memcmp(magic,"SWAPSPACE2",sizeof(magic)) ||
+            is_suspend_signature(magic)) {
             rc=ifs_fs_host_write_bytes_v2(host,at,zero,sizeof(zero));
             if (rc!=IFS_FS_OK) return rc;
         }

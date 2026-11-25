@@ -148,6 +148,35 @@ int main(void)
         CHECK(pwrite(fd,zero,4u,1032)==4);
         CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
     }
+    /* The page-end field also carries Linux suspend signatures. A
+     * read-only probe must not mistake a saved image for an empty disk
+     * or alter the data. Formatting is a separate explicit operation. */
+    {
+        const uint8_t signatures[][10]={
+            "S1SUSPEND","S2SUSPEND","ULSUSPEND","LINHIB0001",
+            {0xedu,0xc3u,0x02u,0xe9u,0x98u,0x56u,0xe5u,0x0cu,0u,0u}
+        };
+        for(size_t i=0;i<sizeof(signatures)/sizeof(signatures[0]);++i) {
+            uint8_t observed[10];
+            CHECK(pwrite(fd,signatures[i],10u,4096u-10u)==10);
+            variant=UINT32_MAX;
+            CHECK(core->probe(&host,&variant)==IFS_FS_UNSUPPORTED && variant==0u);
+            CHECK(pread(fd,observed,10u,4096u-10u)==10);
+            CHECK(!memcmp(observed,signatures[i],10u));
+        }
+        CHECK(volume->format(&host,4096u,"RESTORED",0u)==IFS_FS_OK);
+        /* No usable swap pages remain when every page is bad. */
+        const uint8_t fifteen[4]={15u,0u,0u,0u};
+        const uint8_t zero[4]={0u,0u,0u,0u};
+        CHECK(pwrite(fd,fifteen,4u,1032u)==4);
+        for(uint32_t i=1u;i<=15u;++i) {
+            const uint8_t number[4]={(uint8_t)i,0u,0u,0u};
+            CHECK(pwrite(fd,number,4u,1536u+(i-1u)*4u)==4);
+        }
+        CHECK(core->probe(&host,&variant)==IFS_FS_CORRUPT);
+        CHECK(pwrite(fd,zero,4u,1032u)==4);
+        CHECK(core->probe(&host,&variant)==IFS_FS_OK && variant==4096u);
+    }
     CHECK(pwrite(fd,&corrupt,1u,4095)==1);
     CHECK(core->probe(&host,&variant)!=IFS_FS_OK);
     /* Independently inspect every supported native page geometry, including
