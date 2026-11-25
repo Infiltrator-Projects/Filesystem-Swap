@@ -1,5 +1,4 @@
 %PDF-1.4
-%‚„œ”
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
 endobj
@@ -207,7 +206,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 21 0 R >>
 endobj
 21 0 obj
-<< /Length 1996 >>
+<< /Length 1980 >>
 stream
 0.05 0.13 0.22 rg 0 749 595 93 re f
 0.04 0.54 0.60 rg 50 747 115 4 re f
@@ -225,7 +224,7 @@ BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. Linux man-pages: mkswap
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://man7.org/linux/man-pages/man8/mkswap.8.html) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. util-linux mkswap source and signature handling) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://sources.debian.org/src/util-linux/2.42.2-1/disk-utils/mkswap.c) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our independent .so, optional .ko, build procedures and test evidence describe a separate) Tj ET
+BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our Common V2 .so, build procedures and test evidence describe a separate) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
 BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
 endstream
@@ -369,37 +368,37 @@ endobj
 xref
 0 30
 0000000000 65535 f 
-0000000015 00000 n 
-0000000064 00000 n 
-0000000198 00000 n 
-0000000268 00000 n 
-0000000343 00000 n 
-0000000411 00000 n 
-0000000557 00000 n 
-0000003380 00000 n 
-0000003526 00000 n 
-0000005433 00000 n 
-0000005581 00000 n 
-0000007581 00000 n 
-0000007729 00000 n 
-0000009476 00000 n 
-0000009624 00000 n 
-0000011543 00000 n 
-0000011691 00000 n 
-0000013416 00000 n 
-0000013564 00000 n 
-0000015186 00000 n 
-0000015334 00000 n 
-0000017382 00000 n 
-0000017530 00000 n 
-0000020236 00000 n 
-0000020384 00000 n 
-0000023071 00000 n 
-0000023219 00000 n 
-0000025564 00000 n 
-0000025712 00000 n 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000192 00000 n 
+0000000262 00000 n 
+0000000337 00000 n 
+0000000405 00000 n 
+0000000551 00000 n 
+0000003374 00000 n 
+0000003520 00000 n 
+0000005427 00000 n 
+0000005575 00000 n 
+0000007575 00000 n 
+0000007723 00000 n 
+0000009470 00000 n 
+0000009618 00000 n 
+0000011537 00000 n 
+0000011685 00000 n 
+0000013410 00000 n 
+0000013558 00000 n 
+0000015180 00000 n 
+0000015328 00000 n 
+0000017360 00000 n 
+0000017508 00000 n 
+0000020214 00000 n 
+0000020362 00000 n 
+0000023049 00000 n 
+0000023197 00000 n 
+0000025542 00000 n 
+0000025690 00000 n 
 trailer
 << /Size 30 /Root 1 0 R >>
 startxref
-29411
+29389
 %%EOF
