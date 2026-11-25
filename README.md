@@ -1,41 +1,36 @@
 # Filesystem-Swap
 
-SWAP.so is an independent Linux swap-area provider using the canonical
-Infiltratr Common V2 filesystem ABI. It has real, bounded on-disk probing
-and disposable-media formatting. The source-owned checksum, geometry,
-swap version, UUID and unusable-page validation are exercised in C tests.
+## 1. Purpose and format scope
 
-## BOOT eligibility
+Linux paging area, not a directory-bearing filesystem. This repository owns the format-specific implementation of `SWAP.so` for InfiltratorOS.
 
-A Linux swap area is a paging store, not a filesystem directory tree.
-It cannot legitimately contain named boot files, kernels or initramfs
-images. BOOT **must reject SWAP.so as a boot volume**.
+## 2. On-disk architecture and invariants
 
-This is an intentional capability distinction, not a failed V2 migration:
+Interpret swap signatures, version, page geometry, UUID and unusable-page metadata. Recognise native suspend/hibernation signatures without overwriting them during probe; reject unusable geometry.
 
-- CORE advertises real PROBE, but not MOUNT, STAT, LIST or READ.
-- VOLUME advertises the format operation; the host must provide the
-  necessary exclusive and writable capabilities.
-- The provider advertises HOSTED, not a freestanding BOOT-reader profile.
-- No fake directory entries, invented file reads, EFI driver, Linux
-  filesystem-specific `.ko` or FUSE substitute is supplied.
+## 3. Common V2 implementation and capabilities
 
-The production BOOT-validator test must prove a policy rejection using an
-**executable production validator**. A missing validator, failed download,
-checksum mismatch or crashed command cannot count as a successful check.
-The current BOOT 0.1.77 release package no longer contains the expected
-`/usr/lib/infiltrator-boot/validate-module`; the associated integration
-test deliberately fails closed until this BOOT-side contract is restored.
-Hosted Common V2 media and packaging tests are separate qualifications.
+Hosted Common V2 exports genuine probe and format; it deliberately has no mount, stat, list or file read namespace. BOOT must reject it as a boot volume, not manufacture directory entries or treat absent validation as success. The canonical entry point is `infiltrator_filesystem_api_v2`. Consumers must negotiate the actual profile and operation masks and use bounded, partition-relative host I/O. A source-level callback does not by itself establish that every format variant or host profile is qualified.
 
-## Installation
+## 4. Integrity, mutation, allocation and recovery
 
-The Debian package installs exactly:
+Formatting needs exclusive writable media. There is no file allocation, defragmentation, journal or ordinary filesystem recovery contract. Hibernation data must not be mistaken for disposable free pages. For destructive operations, require the applicable exclusive writable host, durability contract and format-specific validation. Never silently substitute a kernel or FUSE driver or treat a rejected or unavailable operation as success. Preserve original disk-format semantics; relocation and recovery are separate from ordinary file I/O.
 
-- `/System/Filesystems/SWAP.so`
-- `/System/Resources/Documentation/Filesystem-Swap.pdf`
+## 5. Build, installation and release
 
-The native `.run` builds and installs the source-owned CPU-native variant
-through the same Common V2 interface. Build-time tooling is not a
-filesystem runtime dependency. Neither installer supplies a kernel
-module as an alternative filesystem implementation.
+The target installation is `/System/Filesystems/SWAP.so` and `/System/Resources/Documentation/Filesystem-Swap.pdf`. The project release policy is a portable amd64 DEB and a CPU-native source-first RUN, with GitHub's automatic source archive; do not treat this policy statement as verification of the current installer payload. The release workflow is the authoritative executable build and package specification. Historical adapters and test artifacts are not additional production filesystem authorities.
+
+## 6. Qualification and limitations
+
+[Recorded qualification workflow](https://github.com/Infiltrator-Projects/Filesystem-Swap/actions/runs/45520126664) · [Current workflows](https://github.com/Infiltrator-Projects/Filesystem-Swap/actions?query=branch%3Amain). A successful workflow establishes the tested scope only, not complete original-format parity, physical-media crash safety, or production BOOT/kernel integration. Use disposable images for destructive qualification.
+
+## 7. Technical references and provenance
+
+- [Provider implementation](module/swap_module.c)
+- [Native design or source provenance](docs/COMMON_V2_BOOT_STATUS.md)
+- [Migration and source history](MIGRATION_STATUS.md)
+- [Original-format reference source](docs/Swap.pages) and [PDF](docs/Swap.pdf)
+- [Project philosophy](docs/PHILOSOPHY.md)
+- [Common ABI](https://github.com/Infiltrator-Projects/Libraries)
+
+The original-format reference and historical migration notes describe different evidence from the current production provider. When descriptions disagree, the current exported descriptor, implementation, executable tests and exact-revision release evidence take precedence.
