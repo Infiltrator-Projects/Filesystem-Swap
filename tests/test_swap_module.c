@@ -57,7 +57,19 @@ int main(void)
     int fd;
     CHECK(ifs_fs_api_v2_valid(api,"swap"));
     CHECK(api->group_mask==(IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE) |
-                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME)));
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME) |
+                            IFS_FS_GROUP_BIT(IFS_FS_GROUP_FORMAT_PROFILE)));
+    const IfsFsFormatProfileOpsV2 *profile=(const IfsFsFormatProfileOpsV2 *)
+        ifs_fs_group_v2(api,IFS_FS_GROUP_FORMAT_PROFILE);
+    IfsFsFormatProfileV2 defaults={.structure_bytes=sizeof(defaults)};
+    CHECK(profile && profile->get_default &&
+          profile->get_default(NULL)==IFS_FS_INVALID);
+    CHECK(profile->get_default(&defaults)==IFS_FS_OK &&
+          ifs_fs_format_profile_v2_valid(&defaults));
+    CHECK(defaults.format_variant==4096u && defaults.probe_variant==4096u &&
+          defaults.layout==IFS_FS_LAYOUT_NO_NAMESPACE &&
+          defaults.exact_block_bytes==4096u &&
+          (defaults.flags&IFS_FS_FORMAT_ACCEPTS_LABEL));
     core=(const IfsFsCoreOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_CORE);
     volume=(const IfsFsVolumeOpsV2 *)ifs_fs_group_v2(api,IFS_FS_GROUP_VOLUME);
     CHECK(core && volume && core->probe && volume->format);

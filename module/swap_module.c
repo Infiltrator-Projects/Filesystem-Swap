@@ -252,6 +252,25 @@ static const IfsFsVolumeOpsV2 volume = {
                IFS_FS_GROUP_VOLUME, 0u, IFS_FS_VOLUME_FORMAT},
     .format = format
 };
+/* A swap provider describes its own namespace-free format geometry. */
+static int default_format_profile(IfsFsFormatProfileV2 *p)
+{
+    if(!p || p->structure_bytes<sizeof(*p))return IFS_FS_INVALID;
+    *p=(IfsFsFormatProfileV2){
+        .structure_bytes=sizeof(*p), .flags=IFS_FS_FORMAT_ACCEPTS_LABEL,
+        .format_variant=4096u, .probe_variant=4096u,
+        .exact_block_bytes=4096u, .layout=IFS_FS_LAYOUT_NO_NAMESPACE,
+        .minimum_bytes=8192u,
+        .recommended_bytes=2048ull*1024u*1024u,
+        .maximum_bytes=(uint64_t)UINT32_MAX*4096u
+    };
+    return IFS_FS_OK;
+}
+static const IfsFsFormatProfileOpsV2 format_profile_ops={
+    .header={IFS_FS_GROUP_ABI_V2,sizeof(IfsFsFormatProfileOpsV2),
+             IFS_FS_GROUP_FORMAT_PROFILE,0u,IFS_FS_FORMAT_PROFILE_DEFAULT},
+    .get_default=default_format_profile
+};
 static const IfsFsGroupHeaderV2 *group(uint32_t id,
                                        uint32_t minimum, uint32_t maximum)
 {
@@ -260,13 +279,15 @@ static const IfsFsGroupHeaderV2 *group(uint32_t id,
         return NULL;
     if (id == IFS_FS_GROUP_CORE) return &core.header;
     if (id == IFS_FS_GROUP_VOLUME) return &volume.header;
+    if (id == IFS_FS_GROUP_FORMAT_PROFILE) return &format_profile_ops.header;
     return NULL;
 }
 static const IfsFsModuleApiV2 api = {
     IFS_FS_COMMON_ABI_V2, sizeof(IfsFsModuleApiV2), "swap",
     IFS_FS_PROFILE_HOSTED,
     IFS_FS_GROUP_BIT(IFS_FS_GROUP_CORE) |
-        IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME),
+        IFS_FS_GROUP_BIT(IFS_FS_GROUP_VOLUME) |
+        IFS_FS_GROUP_BIT(IFS_FS_GROUP_FORMAT_PROFILE),
     group
 };
 __attribute__((visibility("default")))
