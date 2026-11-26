@@ -29,8 +29,10 @@ The target installation is `/System/Filesystems/SWAP.so` and `/System/Resources/
 - [Provider implementation](module/swap_module.c)
 - [Native design or source provenance](docs/COMMON_V2_BOOT_STATUS.md)
 - [Migration and source history](MIGRATION_STATUS.md)
-- [Original-format reference source](docs/Swap.pages) and [PDF](docs/Swap.pdf)
+- [Original-format reference source](docs/Swap.pdfstreams) and [PDF](docs/Swap.pdf)
 - [Project philosophy](docs/PHILOSOPHY.md)
 - [Common ABI](https://github.com/Infiltrator-Projects/Libraries)
 
 The original-format reference and historical migration notes describe different evidence from the current production provider. When descriptions disagree, the current exported descriptor, implementation, executable tests and exact-revision release evidence take precedence.
+
+The [engineering reference](docs/Swap-TECHNICAL-REFERENCE.md) adds field-level original-format guidance. Earlier material is preserved in the PDF.
