@@ -39,23 +39,23 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
 endobj
 9 0 obj
-<< /Length 1730 >>
+<< /Length 1680 >>
 stream
 0.06 0.15 0.23 rg 0 768 595 74 re f
 1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
 BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
 0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (1. Scope: paging store rather than filesystem) Tj ET
 0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Linux swap is a backing store for virtual-memory pages, not a hierarchical) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (filesystem. It has no directories, file names, inodes, native extent tree, journal) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (or persistent ordinary-file allocator. The historic SWAP-SPACE signature identifies) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (the obsolete bitmap-based version; SWAPSPACE2 identifies the modern header with a) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (bad-page list. A swap file inside a filesystem has an outer filesystem allocation) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (mapping, distinct from the inner swap header and page offsets. The current) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (reference uses Linux v6.12 include/linux/swap.h and mm/swapfile.c. A valid header) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (alone is not permission to activate a swap area.) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (Virtual-memory swapping predates Linux; Linux's modern SWAPSPACE2 format evolved) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (from its older bitmap header during the 1990s. It must not be confused with a) Tj ET
-0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (hierarchical filesystem or a hibernation image protocol.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (filesystem. It has no directories, file names, inodes, native extent tree,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (journal or persistent ordinary-file allocator. The historic SWAP-SPACE) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (signature identifies the obsolete bitmap-based version; SWAPSPACE2 identifies) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (the modern header with a bad-page list. A swap file inside a filesystem has an) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (outer filesystem allocation mapping, distinct from the inner swap header and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (page offsets. The current reference uses Linux v6.12 include/linux/swap.h and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (mm/swapfile.c. A valid header alone is not permission to activate a swap area.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (Virtual-memory swapping predates Linux. The modern SWAPSPACE2 format evolved) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (from the older bitmap header during the 1990s; hibernation image protocols are) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (separate.) Tj ET
 0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 2) Tj ET
 endstream
 endobj
@@ -229,22 +229,22 @@ xref
 0000000529 00000 n 
 0000001616 00000 n 
 0000001762 00000 n 
-0000003543 00000 n 
-0000003691 00000 n 
-0000005057 00000 n 
-0000005205 00000 n 
-0000006638 00000 n 
-0000006786 00000 n 
-0000008216 00000 n 
-0000008364 00000 n 
-0000009911 00000 n 
-0000010059 00000 n 
-0000011646 00000 n 
-0000011794 00000 n 
-0000014017 00000 n 
-0000014165 00000 n 
+0000003493 00000 n 
+0000003641 00000 n 
+0000005007 00000 n 
+0000005155 00000 n 
+0000006588 00000 n 
+0000006736 00000 n 
+0000008166 00000 n 
+0000008314 00000 n 
+0000009861 00000 n 
+0000010009 00000 n 
+0000011596 00000 n 
+0000011744 00000 n 
+0000013967 00000 n 
+0000014115 00000 n 
 trailer
 << /Size 24 /Root 1 0 R >>
 startxref
-15734
+15684
 %%EOF

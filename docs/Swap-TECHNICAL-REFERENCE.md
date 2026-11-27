@@ -4,7 +4,7 @@
 
 Linux swap is a backing store for virtual-memory pages, not a hierarchical filesystem. It has no directories, file names, inodes, native extent tree, journal or persistent ordinary-file allocator. The historic SWAP-SPACE signature identifies the obsolete bitmap-based version; SWAPSPACE2 identifies the modern header with a bad-page list. A swap file inside a filesystem has an outer filesystem allocation mapping, distinct from the inner swap header and page offsets. The current reference uses Linux v6.12 include/linux/swap.h and mm/swapfile.c. A valid header alone is not permission to activate a swap area.
 
-Virtual-memory swapping predates Linux; Linux's modern SWAPSPACE2 format evolved from its older bitmap header during the 1990s. It must not be confused with a hierarchical filesystem or a hibernation image protocol.
+Virtual-memory swapping predates Linux. The modern SWAPSPACE2 format evolved from the older bitmap header during the 1990s; hibernation image protocols are separate.
 
 ## Page geometry and signatures
 
