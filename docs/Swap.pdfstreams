@@ -1,426 +1,147 @@
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Scope: paging store rather than filesystem) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Linux swap is a backing store for virtual-memory pages, not a hierarchical) Tj
-T* (filesystem. It has no directories, file names, inodes, native extent tree,) Tj
-T* (journal or persistent ordinary-file allocator. The historic SWAP-SPACE) Tj
-T* (signature identifies the obsolete bitmap-based version; SWAPSPACE2) Tj
-T* (identifies the modern header with a bad-page list. A swap file inside a) Tj
-T* (filesystem has an outer filesystem allocation mapping, distinct from the) Tj
-T* (inner swap header and page offsets. The current reference uses Linux v6.12) Tj
-T* (include/linux/swap.h and mm/swapfile.c. A valid header alone is not) Tj
-T* (permission to activate a swap area.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 1 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 18 Tf 43 736 Td (Contents) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 711 Td (1. Scope: paging store rather than filesystem) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 695 Td (2. Page geometry and signatures) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 679 Td (3. Modern header byte inventory) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 663 Td (4. Worked capacity and page map) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 647 Td (5. Legacy bitmap format and hibernation) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 631 Td (6. Formatting, activation and defragmentation boundary) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 615 Td (7. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F1 11 Tf 43 599 Td (8. Validation and source references) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 1) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Page geometry and signatures) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The swap header occupies the first memory-page-sized region of the area. Its) Tj
-T* (ten-byte ASCII signature sits at page_size-10, not always offset 4086. At) Tj
-T* (4096 bytes that offset is 4086; at 65536 it is 65526. Detect candidate page) Tj
-T* (sizes using bounded reads and validate version and geometry; do not infer) Tj
-T* (the host page size from an unrelated device sector size. Page 0 is reserved.) Tj
-T* (Page n starts at n*page_size relative to the swap area. For a swap file the) Tj
-T* (host mapping must translate this logical position to stable storage. Reject) Tj
-T* (truncated headers and arithmetic overflow.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 2 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (1. Scope: paging store rather than filesystem) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Linux swap is a backing store for virtual-memory pages, not a hierarchical) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (filesystem. It has no directories, file names, inodes, native extent tree, journal) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (or persistent ordinary-file allocator. The historic SWAP-SPACE signature identifies) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (the obsolete bitmap-based version; SWAPSPACE2 identifies the modern header with a) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (bad-page list. A swap file inside a filesystem has an outer filesystem allocation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (mapping, distinct from the inner swap header and page offsets. The current) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (reference uses Linux v6.12 include/linux/swap.h and mm/swapfile.c. A valid header) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (alone is not permission to activate a swap area.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (Virtual-memory swapping predates Linux; Linux's modern SWAPSPACE2 format evolved) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (from its older bitmap header during the 1990s. It must not be confused with a) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (hierarchical filesystem or a hibernation image protocol.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 2) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Modern header byte inventory) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The first 1024 bytes are reserved for boot/disklabel purposes. At 1024:) Tj
-T* (32-bit version \(normally 1\); 1028 last usable page index; 1032 number of bad) Tj
-T* (pages; 1036 16-byte UUID; 1052 16-byte volume label; 1068..1535) Tj
-T* (reserved/padding; bad-page list begins at 1536 with 32-bit page indices. The) Tj
-T* (magic is at page_size-10. Version 1 can be read in either byte order by) Tj
-T* (detecting the swapped version and decoding all numerical fields) Tj
-T* (consistently; UUID and label bytes are not swapped as integers. Bound) Tj
-T* (bad-page count by available space, reject duplicates and indices outside) Tj
-T* (1..last_page. A declared last_page must fit the actual backing area.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 3 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (2. Page geometry and signatures) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The swap header occupies the first memory-page-sized region of the area. Its) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (ten-byte ASCII signature sits at page_size-10, not always offset 4086. At 4096) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (bytes that offset is 4086; at 65536 it is 65526. Detect candidate page sizes using) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (bounded reads and validate version and geometry; do not infer the host page size) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (from an unrelated device sector size. Page 0 is reserved. Page n starts at) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (n*page_size relative to the swap area. For a swap file the host mapping must) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (translate this logical position to stable storage. Reject truncated headers and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (arithmetic overflow.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 3) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Worked capacity and page map) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(For an area of 256 MiB with 4096-byte pages, total page slots are 65536;) Tj
-T* (last page index is 65535. With no bad pages the maximum usable storage is) Tj
-T* (65535 pages, 268431360 bytes. With valid bad-page indices 7 and 500, 65533) Tj
-T* (pages remain. Index 500 begins at byte 2048000. This is structural capacity,) Tj
-T* (not live free capacity. The kernel may impose a lower maximum based on) Tj
-T* (swap-entry encoding. The runtime swap_map tracks per-slot use, references) Tj
-T* (and special states; ordinary page allocation state is not stored as a modern) Tj
-T* (on-disk persistent bitmap. An offline utility cannot infer which residual) Tj
-T* (bytes belong to currently live processes.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 4 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (3. Modern header byte inventory) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (The first 1024 bytes are reserved for boot/disklabel purposes. At 1024: 32-bit) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (version \(normally 1\); 1028 last usable page index; 1032 number of bad pages; 1036) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (16-byte UUID; 1052 16-byte volume label; 1068..1535 reserved/padding; bad-page list) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (begins at 1536 with 32-bit page indices. The magic is at page_size-10. Version 1) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (can be read in either byte order by detecting the swapped version and decoding all) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (numerical fields consistently; UUID and label bytes are not swapped as integers.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (Bound bad-page count by available space, reject duplicates and indices outside) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (1..last_page. A declared last_page must fit the actual backing area.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 4) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Legacy bitmap format and hibernation) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Old SWAP-SPACE stores a page-availability bitmap in the first page before) Tj
-T* (its signature; available page bits identify usable slots and page 0 is) Tj
-T* (excluded. Its representable capacity is constrained by the header bitmap. Do) Tj
-T* (not confuse it with the modern version-1 bad-page list. Historical) Tj
-T* (kernel/architecture bit ordering must be verified against authentic fixtures) Tj
-T* (before writing that legacy format. Suspend-to-disk can replace the ordinary) Tj
-T* (signature with a resume marker and store a memory image. Such an area may) Tj
-T* (have recovery significance; do not overwrite or reformat it on the) Tj
-T* (assumption that its ordinary swap signature is absent. Hibernation image) Tj
-T* (layout is a separate versioned protocol.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 5 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (4. Worked capacity and page map) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (For an area of 256 MiB with 4096-byte pages, total page slots are 65536; last page) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (index is 65535. With no bad pages the maximum usable storage is 65535 pages,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (268431360 bytes. With valid bad-page indices 7 and 500, 65533 pages remain. Index) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (500 begins at byte 2048000. This is structural capacity, not live free capacity.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (The kernel may impose a lower maximum based on swap-entry encoding. The runtime) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (swap_map tracks per-slot use, references and special states; ordinary page) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (allocation state is not stored as a modern on-disk persistent bitmap. An offline) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (utility cannot infer which residual bytes belong to currently live processes.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 5) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Formatting, activation and defragmentation boundary) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Formatting writes coherent page geometry, version, UUID/label, bad-page list) Tj
-T* (and signature; it is not allocation of files or a secure erase of prior) Tj
-T* (pages. Verify exclusive inactive ownership before any write. Native swapon) Tj
-T* (builds runtime mapping and may refuse unsuitable backing files, holes,) Tj
-T* (changing extents or unsupported CoW layouts. A swapfile must be deactivated) Tj
-T* (before relocating its outer filesystem extents. A raw swap partition has no) Tj
-T* (persistent file fragmentation to repair and must not advertise ordinary) Tj
-T* (defragmentation, file creation or directory enumeration. Active pages must) Tj
-T* (never be moved by an offline formatter. Keep live kernel state, on-disk) Tj
-T* (header geometry and host filesystem ownership separate.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 6 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (5. Legacy bitmap format and hibernation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Old SWAP-SPACE stores a page-availability bitmap in the first page before its) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (signature; available page bits identify usable slots and page 0 is excluded. Its) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (representable capacity is constrained by the header bitmap. Do not confuse it with) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (the modern version-1 bad-page list. Historical kernel/architecture bit ordering) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (must be verified against authentic fixtures before writing that legacy format.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (Suspend-to-disk can replace the ordinary signature with a resume marker and store a) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (memory image. Such an area may have recovery significance; do not overwrite or) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (reformat it on the assumption that its ordinary swap signature is absent.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (Hibernation image layout is a separate versioned protocol.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 6) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Validation and source references) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(Pinned definitions:) Tj
-T* (https://github.com/torvalds/linux/blob/v6.12/include/linux/swap.h ;) Tj
-T* (validation: https://github.com/torvalds/linux/blob/v6.12/mm/swapfile.c .) Tj
-T* (Independent format fixtures: util-linux mkswap and swaplabel) Tj
-T* (\(https://github.com/util-linux/util-linux\). Test multiple page sizes,) Tj
-T* (swapped byte order, invalid version, truncated area, oversized last page,) Tj
-T* (duplicate/out-of-range bad pages, arbitrary residual content and missing or) Tj
-T* (nonstandard signature. Verify header bytes, capacity and no writes during) Tj
-T* (probe. Do not activate test media containing unknown or sensitive memory) Tj
-T* (images. Runtime allocation and hibernation recovery are separate kernel) Tj
-T* (functions. The earlier manual follows for provenance.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 7 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (6. Formatting, activation and defragmentation boundary) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Formatting writes coherent page geometry, version, UUID/label, bad-page list and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (signature; it is not allocation of files or a secure erase of prior pages. Verify) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (exclusive inactive ownership before any write. Native swapon builds runtime mapping) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (and may refuse unsuitable backing files, holes, changing extents or unsupported CoW) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (layouts. A swapfile must be deactivated before relocating its outer filesystem) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (extents. A raw swap partition has no persistent file fragmentation to repair and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (must not advertise ordinary defragmentation, file creation or directory) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (enumeration. Active pages must never be moved by an offline formatter. Keep live) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (kernel state, on-disk header geometry and host filesystem ownership separate.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 7) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-1 1 1 rg BT /F2 11 Tf 50 807 Td (INFILTRATOR / FILESYSTEM ENGINEERING REFERENCE) Tj ET
-BT /F2 21 Tf 50 775 Td (Swap - technical reference) Tj ET
-0.05 0.13 0.22 rg BT /F2 14 Tf 50 715 Td (Historical reference appendix) Tj ET
-BT /F1 11 Tf 15 TL 50 685 Td
-(The earlier manual follows for provenance. Its provider and qualification) Tj
-T* (statements are historical; the new engineering chapters take precedence for) Tj
-T* (format interpretation.) Tj
-ET
-0.05 0.13 0.22 rg BT /F1 9 Tf 50 42 Td (Engineering chapter 8 | Original format, not provider qualification) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (7. Implementation and qualification boundary) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (At historical revision 74ea959c903c the hosted interface declared probe and format,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (deliberately not mount, stat, list or file reads. BOOT must refuse a paging area as) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (an operating-system namespace. Formatting requires inactive exclusive media and) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (must not erase resume data by accident.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 640 Td (Common V2 is the independent provider interface:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 626 Td (https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 612 Td (ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 598 Td (I/O, exclusive unmounted ownership and durable flush for mutation; distinguish) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 584 Td (unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 570 Td (the same engine only for supported operations. Hosted, freestanding, BOOT, kernel,) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 556 Td (recovery and package qualification are independent. Current capability and release) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 542 Td (status belongs to the repository README and exact-source qualification records;) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 528 Td (historical evidence is not a current status claim.) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 504 Td (Historical source or test reference:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 490 Td (https://github.com/Infiltrator-Projects/Filesystem-Swap/tree/74ea959c903c .) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 8) Tj ET
 
 %%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 01) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 694.0 Tm (OFFICIAL FORMAT / CHRONOLOGY / ENGINEERING) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 650.0 Tm (A page-oriented operating-system backing store, not a normal directory-bearing persistent) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 633.0 Tm (file system: Linux swap areas have their own header, extents and activation rules.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 603.0 Tm (This guide documents the original format's technical architecture, history and independent) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 586.0 Tm (source references. InfiltratorOS modules and install packages are implementation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 569.0 Tm (artefacts, not the authority for the historic on-disk definition.) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 539.0 Tm (CONCEPTUAL MEDIA MAP) Tj ET
-0.05 0.36 0.47 rg 50 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 487.0 Tm (SIGNATURE PAGE) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 468.0 Tm (SWAPSPACE2 signature and header) Tj ET
-0.08 0.39 0.49 rg 301 455 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 487.0 Tm (METADATA) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 468.0 Tm (UUID, label, last-page fields) Tj ET
-0.10 0.43 0.52 rg 50 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 62 405.0 Tm (SWAP SLOTS) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 62 386.0 Tm (Page-aligned backing store) Tj ET
-0.13 0.46 0.54 rg 301 373 238 67 re f
-BT /F2 11 Tf 1 1 1 rg 1 0 0 1 313 405.0 Tm (KERNEL MM) Tj ET
-BT /F1 8.5 Tf 0.85 0.97 0.97 rg 1 0 0 1 313 386.0 Tm (Page-out and page-in mapping) Tj ET
-BT /F2 12 Tf 0.02 0.50 0.55 rg 1 0 0 1 50 332.0 Tm (CONTENTS) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 305.0 Tm (1. Historical chronology) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 282.0 Tm (2. Original on-disk architecture) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 259.0 Tm (3. Allocation and directories) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 236.0 Tm (4. Integrity and recovery) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 213.0 Tm (5. Design rationale and limitations) Tj ET
-BT /F1 10.4 Tf 0.07 0.16 0.23 rg 1 0 0 1 51 190.0 Tm (6. InfiltratorOS integration boundary) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 02) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (HISTORICAL CHRONOLOGY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (Virtual memory and swapping predate Linux, originating in early time-sharing operating) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (systems that used secondary storage for memory pressure. Linux inherited the principle of) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (a separate swap partition or file but developed its own on-disk headers and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (page-allocation rules. The current Linux swap-area signature is historically distinct from) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (both Unix filesystems and the storage of hibernation images.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (The Linux swap format evolved from older versions to the SWAPSPACE2 scheme as memory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (capacities and kernel paging changed during the 1990s. The util-linux mkswap utility and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (Linux kernel memory manager document current behaviour. The history should not be) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (described as if swap had directories, inode tables or ordinary files.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 03) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ORIGINAL ON-DISK ARCHITECTURE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (A swap area contains a header page with identifying information, usable page count, UUID,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (label and a signature at the end of the signature page. Most of the area consists of) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (page-size slots available for swapping. The format is interpreted relative to the running) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (kernel's architecture and page-size assumptions, not as a traditional filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 608.0 Tm (superblock with directory roots.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (A swap file resides inside a separate host filesystem and is subject to alignment, stable) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (mapping and holes or copy-on-write restrictions. A swap partition exposes contiguous) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (block-device sectors but is not a navigable file namespace. Hibernate or resume metadata) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (may use the same physical area under separate rules and must not be overwritten as though) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 510.0 Tm (it were unused swap.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 04) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (ALLOCATION AND DIRECTORIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (The kernel tracks swap slot allocation in memory as virtual-memory pages are moved to and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (from backing storage. The on-disk area does not maintain a persistent FAT or B-tree) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (directory mapping human filenames to data. Active swapping can make arbitrary raw reads) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (inconsistent because slots are reused rapidly.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (The system supports multiple swap areas with priorities and may choose among them based on) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (configured policy. Swap file extents can change if their host filesystem rewrites blocks,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (which is why filesystem and kernel constraints on swapfiles matter. No object-per-file) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (allocation API belongs to the Linux swap format.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 05) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INTEGRITY AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (Swap is transient backing store, not a persistent user-data recovery format. The normal) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (failure response to lost anonymous pages may be a process failure or system problem, not a) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (filesystem repair scan. The header and signature can prove that a device is configured as) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (swap, but not guarantee that historical process pages are meaningful after reboot.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (mkswap changes the area header and can make previous content inaccessible or unusable.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (swapon activates it under kernel policy. Writing to an active swap device as though it) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (were an unmounted filesystem can cause immediate memory corruption. An offline verifier) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (should identify page geometry, headers and signatures without pretending that a) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527.0 Tm (conventional fsck can reconstruct directories.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 06) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (DESIGN RATIONALE AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (Swap is deliberately simple, aligned to the VM system's allocation unit and usable by the) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (kernel without filesystem namespace overhead. Page-oriented allocation fits virtual-memory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (semantics, but this simplicity makes it unlike the 22 other persistent on-media filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (formats in the InfiltratorOS catalogue.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (Swap does not implement POSIX files, journalled directory transactions, permissions per) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (swapped page, snapshots or metadata trees. Security handling may involve discard,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (encryption or hibernation policy outside the swap header format. Capacity limits vary with) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 544.0 Tm (kernel and architecture.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 07) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (INFILTRATOROS INTEGRATION BOUNDARY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (SWAP.so can at most expose swap format identification and appropriate host-side) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (capabilities. Actual paging remains a responsibility of the operating-system memory) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (manager. The absence of a SWAP.ko under our distribution rules must not be misrepresented) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (as a missing independent filesystem driver.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (The Linux kernel's built-in swap subsystem is not replaceable by merely placing a) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 578.0 Tm (userspace shared library in /System/Filesystems. The manual intentionally records this) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 561.0 Tm (fundamental distinction while describing the on-media header and historical evolution.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801.0 Tm (INFILTRATOR / ORIGINAL FILESYSTEM HISTORY AND DESIGN) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771.0 Tm (Linux swap-space disk format and history) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34.0 Tm (Filesystem-Swap / researched original-format reference) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 512 34.0 Tm (PAGE 08) Tj ET
-BT /F2 14 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 711.0 Tm (PRIMARY SOURCE REFERENCES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 676.0 Tm (These primary technical documents and near-contemporary references provide provenance for) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 659.0 Tm (the design history and on-disk structures. For exact field sizes or a particular format) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 642.0 Tm (revision, consult the original specifications and source code, not the conceptual cover) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 625.0 Tm (illustration.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 595.0 Tm (1. Linux man-pages: mkswap\(8\), on-disk header and limits) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 565.0 Tm (https://man7.org/linux/man-pages/man8/mkswap.8.html) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 535.0 Tm (2. util-linux mkswap source and signature handling) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 505.0 Tm (https://sources.debian.org/src/util-linux/2.42.2-1/disk-utils/mkswap.c) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 475.0 Tm (Our Common V2 .so, build procedures and test evidence describe a separate) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458.0 Tm (implementation. The source-level history in this PDF cannot itself qualify production) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 441.0 Tm (writes, boot, recovery or cross-platform compatibility.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (Swap / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 09) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (DISK READ PATH / ENGINEERING NOTES) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Linux swap space is a memory-management backing store, not a general-purpose) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (filesystem with a directory tree and ordinary file records.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Read the swap header at the page-size-dependent location and verify the expected) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (version and SWAPSPACE2 signature.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Interpret the header's last-page boundary, bad-page inventory, UUID and optional label) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (where the selected format revision defines them.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. The remainder of a swap area is organised as page-sized slots managed by the kernel's) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (memory subsystem, not FAT clusters or Unix inodes.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. Translate page indexes using the expected swap page size and device bounds. A header) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (signature does not imply that every slot contains useful data.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Distinguish a dedicated swap partition from swap within a regular filesystem file,) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (where the hosting filesystem controls physical extent placement.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 420 Tm (7. Understand that transient swap pages are replaced and reused as processes run. A) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (slot's raw contents do not identify its owner without external memory-management state.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 377 Tm (8. Hibernation images and resume metadata have separate conventions that must not be) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (confused with ordinary swap-space allocation.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.01 0.52 0.56 rg 50 747 116 5 re f
-0.75 0.82 0.85 RG .7 w 50 49 m 545 49 l S
-BT /F2 9 Tf 0.62 0.88 0.91 rg 1 0 0 1 50 800 Tm (INFILTRATOR / ORIGINAL FILESYSTEM ENGINEERING APPENDIX) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 770 Tm (Swap / engineering detail) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 50 34 Tm (Original format research; consult primary references for normative fields) Tj ET
-BT /F1 8 Tf 0.3 0.39 0.42 rg 1 0 0 1 509 34 Tm (PAGE 10) Tj ET
-BT /F2 13.5 Tf 0.02 0.44 0.50 rg 1 0 0 1 50 710 Tm (VALIDATION, RECOVERY AND COMPATIBILITY) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 678 Tm (1. Never mount or attempt directory repair on swap space as though it were ext, FAT or) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 661.5 Tm (another filesystem; there is no such namespace to reconstruct.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 635 Tm (2. Check header signatures, version and last-page bounds before deciding the area is) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 618.5 Tm (usable, and exclude known bad-page slots.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 592 Tm (3. Treat UUID and label fields as identification aids rather than integrity checksums or) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 575.5 Tm (proof that page data is consistent.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 549 Tm (4. Do not infer stored process identities or allocation order solely from raw swap slots;) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 532.5 Tm (live mappings are held in operating-system memory.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 506 Tm (5. A running system may change swap pages during acquisition. Forensic work requires a) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 489.5 Tm (coherent image and an understanding of process and kernel state.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 463 Tm (6. Recognise that encrypted swap may contain ciphertext and ephemeral keys can make prior) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 446.5 Tm (contents unrecoverable.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 420 Tm (7. Keep mkswap initialization, swapon activation, hibernation resume and secure erasure) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 403.5 Tm (as distinct operations with different safety implications.) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 377 Tm (8. Historical virtual-memory swapping predates Linux; document the Linux on-disk swap) Tj ET
-BT /F1 10 Tf 0.09 0.16 0.24 rg 1 0 0 1 55 360.5 Tm (format rather than presenting paging itself as a novel filesystem invention.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (Swap / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision 74ea959c903c) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 11) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (1. PURPOSE AND FORMAT SCOPE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (Linux paging area, not a directory-bearing filesystem. This repository) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (owns the format-specific implementation of SWAP.so for InfiltratorOS.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 641 Tm (2. ON-DISK ARCHITECTURE AND INVARIANTS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 617 Tm (Interpret swap signatures, version, page geometry, UUID and unusable-page) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 602 Tm (metadata. Recognise native suspend/hibernation signatures without) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 587 Tm (overwriting them during probe; reject unusable geometry.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 557 Tm (3. COMMON V2 IMPLEMENTATION AND CAPABILITIES) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 533 Tm (Hosted Common V2 exports genuine probe and format; it deliberately has no) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 518 Tm (mount, stat, list or file read namespace. BOOT must reject it as a boot) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 503 Tm (volume, not manufacture directory entries or treat absent validation as) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 488 Tm (success. The canonical entry point is infiltrator_filesystem_api_v2.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 473 Tm (Consumers must negotiate the actual profile and operation masks and use) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 458 Tm (bounded, partition-relative host I/O. A source-level callback does not by) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 443 Tm (itself establish that every format variant or host profile is qualified.) Tj ET
-
-%%Page
-0.05 0.13 0.22 rg 0 749 595 93 re f
-0.04 0.54 0.60 rg 50 747 115 4 re f
-0.78 0.82 0.86 RG 0.6 w 50 50 m 545 50 l S
-BT /F2 9 Tf 0.62 0.86 0.90 rg 1 0 0 1 50 801 Tm (INFILTRATOR / IMPLEMENTATION REFERENCE) Tj ET
-BT /F2 19 Tf 1 1 1 rg 1 0 0 1 50 771 Tm (Swap / Common V2 provider) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 50 34 Tm (Implementation appendix / source revision 74ea959c903c) Tj ET
-BT /F1 8 Tf 0.34 0.40 0.44 rg 1 0 0 1 505 34 Tm (PAGE 12) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 710 Tm (4. INTEGRITY, MUTATION, ALLOCATION AND RECOVERY) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 686 Tm (Formatting needs exclusive writable media. There is no file allocation,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 671 Tm (defragmentation, journal or ordinary filesystem recovery contract.) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 656 Tm (Hibernation data must not be mistaken for disposable free pages. For) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 641 Tm (destructive operations, require the applicable exclusive writable host,) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 626 Tm (durability contract and format-specific validation. Never silently) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 611 Tm (substitute a kernel or FUSE driver or treat a rejected or unavailable) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 596 Tm (operation as success. Preserve original disk-format semantics; relocation) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 581 Tm (and recovery are separate from ordinary file I/O.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 551 Tm (5. BUILD, INSTALLATION AND RELEASE) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 527 Tm (The target installation is /System/Filesystems/SWAP.so and) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 512 Tm (/System/Resources/Documentation/Filesystem-Swap.pdf. The project release) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 497 Tm (policy is a portable amd64 DEB and a CPU-native source-first RUN, with) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 482 Tm (GitHub's automatic source archive; do not treat this policy statement as) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 467 Tm (verification of the current installer payload. The release workflow is the) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 452 Tm (authoritative executable build and package specification. Historical) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 437 Tm (adapters and test artifacts are not additional production filesystem) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 422 Tm (authorities.) Tj ET
-BT /F2 13 Tf 0.02 0.45 0.50 rg 1 0 0 1 50 392 Tm (6. QUALIFICATION AND LIMITATIONS) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 368 Tm (Recorded qualification workflow) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 353 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-Swap/actions/runs/4552) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 338 Tm (0126664\) | Current workflows) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 323 Tm (\(https://github.com/Infiltrator-Projects/Filesystem-Swap/actions?query=bra) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 308 Tm (nch%3Amain\). A successful workflow establishes the tested scope only, not) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 293 Tm (complete original-format parity, physical-media crash safety, or) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 278 Tm (production BOOT/kernel integration. Use disposable images for destructive) Tj ET
-BT /F1 10.2 Tf 0.07 0.16 0.23 rg 1 0 0 1 50 263 Tm (qualification.) Tj ET
+0.06 0.15 0.23 rg 0 768 595 74 re f
+1 1 1 rg BT /F2 10 Tf 43 811 Td (INFILTRATOR / FILESYSTEM ENGINEERING) Tj ET
+BT /F2 22 Tf 43 784 Td (Swap - technical reference) Tj ET
+0.08 0.14 0.20 rg BT /F2 15 Tf 43 736 Td (8. Validation and source references) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 706 Td (Pinned definitions:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 692 Td (https://github.com/torvalds/linux/blob/v6.12/include/linux/swap.h ; validation:) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 678 Td (https://github.com/torvalds/linux/blob/v6.12/mm/swapfile.c . Independent format) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 664 Td (fixtures: util-linux mkswap and swaplabel) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 650 Td (\(https://github.com/util-linux/util-linux\). Test multiple page sizes, swapped byte) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 636 Td (order, invalid version, truncated area, oversized last page, duplicate/out-of-range) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 622 Td (bad pages, arbitrary residual content and missing or nonstandard signature. Verify) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 608 Td (header bytes, capacity and no writes during probe. Do not activate test media) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 594 Td (containing unknown or sensitive memory images. Runtime allocation and hibernation) Tj ET
+0.08 0.14 0.20 rg BT /F3 10 Tf 43 580 Td (recovery are separate kernel functions.) Tj ET
+0.2 0.3 0.4 rg BT /F1 9 Tf 43 32 Td (Historical development and engineering reference | 9) Tj ET

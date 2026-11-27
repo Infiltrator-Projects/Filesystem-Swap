@@ -4,6 +4,8 @@
 
 Linux swap is a backing store for virtual-memory pages, not a hierarchical filesystem. It has no directories, file names, inodes, native extent tree, journal or persistent ordinary-file allocator. The historic SWAP-SPACE signature identifies the obsolete bitmap-based version; SWAPSPACE2 identifies the modern header with a bad-page list. A swap file inside a filesystem has an outer filesystem allocation mapping, distinct from the inner swap header and page offsets. The current reference uses Linux v6.12 include/linux/swap.h and mm/swapfile.c. A valid header alone is not permission to activate a swap area.
 
+Virtual-memory swapping predates Linux; Linux's modern SWAPSPACE2 format evolved from its older bitmap header during the 1990s. It must not be confused with a hierarchical filesystem or a hibernation image protocol.
+
 ## Page geometry and signatures
 
 The swap header occupies the first memory-page-sized region of the area. Its ten-byte ASCII signature sits at page_size-10, not always offset 4086. At 4096 bytes that offset is 4086; at 65536 it is 65526. Detect candidate page sizes using bounded reads and validate version and geometry; do not infer the host page size from an unrelated device sector size. Page 0 is reserved. Page n starts at n*page_size relative to the swap area. For a swap file the host mapping must translate this logical position to stable storage. Reject truncated headers and arithmetic overflow.
@@ -24,6 +26,14 @@ Old SWAP-SPACE stores a page-availability bitmap in the first page before its si
 
 Formatting writes coherent page geometry, version, UUID/label, bad-page list and signature; it is not allocation of files or a secure erase of prior pages. Verify exclusive inactive ownership before any write. Native swapon builds runtime mapping and may refuse unsuitable backing files, holes, changing extents or unsupported CoW layouts. A swapfile must be deactivated before relocating its outer filesystem extents. A raw swap partition has no persistent file fragmentation to repair and must not advertise ordinary defragmentation, file creation or directory enumeration. Active pages must never be moved by an offline formatter. Keep live kernel state, on-disk header geometry and host filesystem ownership separate.
 
+## Implementation and qualification boundary
+
+At historical revision 74ea959c903c the hosted interface declared probe and format, deliberately not mount, stat, list or file reads. BOOT must refuse a paging area as an operating-system namespace. Formatting requires inactive exclusive media and must not erase resume data by accident.
+
+Common V2 is the independent provider interface: https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/FILESYSTEM_COMMON_ABI_V2.md . Negotiate real operation masks and media profiles. Use bounded host I/O, exclusive unmounted ownership and durable flush for mutation; distinguish unsupported, corrupt, I/O and stale-handle results. Test Media and Defragmenter use the same engine only for supported operations. Hosted, freestanding, BOOT, kernel, recovery and package qualification are independent. Current capability and release status belongs to the repository README and exact-source qualification records; historical evidence is not a current status claim.
+
+Historical source or test reference: https://github.com/Infiltrator-Projects/Filesystem-Swap/tree/74ea959c903c .
+
 ## Validation and source references
 
-Pinned definitions: https://github.com/torvalds/linux/blob/v6.12/include/linux/swap.h ; validation: https://github.com/torvalds/linux/blob/v6.12/mm/swapfile.c . Independent format fixtures: util-linux mkswap and swaplabel (https://github.com/util-linux/util-linux). Test multiple page sizes, swapped byte order, invalid version, truncated area, oversized last page, duplicate/out-of-range bad pages, arbitrary residual content and missing or nonstandard signature. Verify header bytes, capacity and no writes during probe. Do not activate test media containing unknown or sensitive memory images. Runtime allocation and hibernation recovery are separate kernel functions. The earlier manual follows for provenance.
+Pinned definitions: https://github.com/torvalds/linux/blob/v6.12/include/linux/swap.h ; validation: https://github.com/torvalds/linux/blob/v6.12/mm/swapfile.c . Independent format fixtures: util-linux mkswap and swaplabel (https://github.com/util-linux/util-linux). Test multiple page sizes, swapped byte order, invalid version, truncated area, oversized last page, duplicate/out-of-range bad pages, arbitrary residual content and missing or nonstandard signature. Verify header bytes, capacity and no writes during probe. Do not activate test media containing unknown or sensitive memory images. Runtime allocation and hibernation recovery are separate kernel functions.
